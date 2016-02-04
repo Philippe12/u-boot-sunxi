@@ -183,6 +183,8 @@ int axp_init(void)
 	if (rc)
 		return rc;
 
+	printf( "AXP209 ver : %d\n", ver);
+
 	return 0;
 }
 
