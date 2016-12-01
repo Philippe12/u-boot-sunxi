@@ -141,7 +141,7 @@
 
 &lradc {
 	vref-supply = <&reg_vcc3v0>;
-	status = "okay";
+	status = "disabled";
 
 	button@191 {
 		label = "Volume Up";
@@ -200,6 +200,16 @@
 	bus-width = <4>;
 	cd-gpios = <&pio 7 1 GPIO_ACTIVE_HIGH>; /* PH1 */
 	cd-inverted;
+	status = "disabled";
+};
+
+&mmc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&mmc2_pins_a>;
+	vmmc-supply = <&reg_vcc3v3>;
+	bus-width = <4>;
+	/*cd-gpios = <&pio 2 24 GPIO_ACTIVE_HIGH>; PC24*/
+	cd-inverted;
 	status = "okay";
 };
 
@@ -210,7 +220,7 @@
 	bus-width = <4>;
 	cd-gpios = <&pio 7 11 GPIO_ACTIVE_HIGH>; /* PH11 */
 	cd-inverted;
-	status = "okay";
+	status = "disabled";
 };
 
 &ohci0 {
@@ -291,6 +301,7 @@
 	status = "okay";
 };
 
+/*
 &uart6 {
 	pinctrl-names = "default";
 	pinctrl-0 = <&uart6_pins_a>;
@@ -302,7 +313,7 @@
 	pinctrl-0 = <&uart7_pins_a>;
 	status = "okay";
 };
-
+*/
 &usb_otg {
 	dr_mode = "otg";
 	status = "okay";

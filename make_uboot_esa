@@ -1,0 +1,52 @@
+#!/bin/sh
+
+pwd='pwd'
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+C_COMP=/home/tizen/environmentsa/android-4.4.3_r1.1/prebuilts/gcc/linux-x86/arm/arm-eabi-4.7/bin/arm-eabi-
+OUT=./esa_out
+
+test ()
+{
+	if [ $1 -eq 0 ]; then
+	    echo ${GREEN}OK${NC}
+	else
+	    echo ${RED}FAIL${NC}
+		exit 1;
+	fi
+	
+}
+
+build ()
+{
+	echo "Build $1 uboot"
+	cp -f ./config_esa_final ./.config > $OUT/build-$1.log 2>&1
+	echo -n "    -> Clean : "
+	make clean >> $OUT/build-$1.log 2>&1
+	test $?
+	echo -n "    -> Make : "
+	make -j10 CROSS_COMPILE=$C_COMP CONFIG_SYS_EXTRA_OPTIONS=$2 >> $OUT/build-$1.log 2>&1
+	test $?
+	echo -n "    -> Move Output : "
+	mv ./u-boot-sunxi-with-spl.bin $OUT/u-boot-sunxi-with-spl-$1.bin >> $OUT/build-$1.log 2>&1
+	test $?
+}
+
+rm -rf $OUT
+mkdir $OUT
+
+build usb '"CMD_ESASCREEN,SUNXI_GMAC,AHCI,SATAPWR=SUNXI_GPB(8),USB_EHCI_HCD,USB_MUSB_SUNXI,USB_MUSB_GADGET,SYS_BOOTM_LEN=(32<<20)"'
+
+build usb-ums '"SUNXI_GMAC,AHCI,SATAPWR=SUNXI_GPB(8),USB_EHCI_HCD,USB_MUSB_SUNXI,USB_MUSB_GADGET,SYS_BOOTM_LEN=(32<<20),ESA_USB_UMS"'
+
+build usb-dfu '"SUNXI_GMAC,AHCI,SATAPWR=SUNXI_GPB(8),USB_EHCI_HCD,USB_MUSB_SUNXI,USB_MUSB_GADGET,SYS_BOOTM_LEN=(32<<20),ESA_USB_DFU"'
+
+build final '"CMD_ESASCREEN,SUNXI_GMAC,AHCI,SATAPWR=SUNXI_GPB(8),SYS_BOOTM_LEN=(32<<20),ESA_FINAL"'
+
+build final-android '"ANDROID_BOOT_IMAGE,SUNXI_GMAC,AHCI,SATAPWR=SUNXI_GPB(8),SYS_BOOTM_LEN=(32<<20),ESA_FINAL_ANDROID,ESA_LVDS"'
+
+build usb-dfu-android '"SUNXI_GMAC,AHCI,SATAPWR=SUNXI_GPB(8),USB_EHCI_HCD,USB_MUSB_SUNXI,USB_MUSB_GADGET,SYS_BOOTM_LEN=(32<<20),ESA_USB_DFU_ANDROID"'
+
+build usb-android '"SUNXI_GMAC,AHCI,SATAPWR=SUNXI_GPB(8),USB_EHCI_HCD,USB_MUSB_SUNXI,USB_MUSB_GADGET,SYS_BOOTM_LEN=(32<<20),ESA_LVDS"'

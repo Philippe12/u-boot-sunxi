@@ -32,6 +32,11 @@
 # define CONFIG_MACH_TYPE_COMPAT_REV	1
 #endif
 
+/*LCD*/
+#ifdef CONFIG_ESA_LVDS
+#define CONFIG_VIDEO_LCD_MODE	"x:800,y:480,depth:18,pclk_khz:33000,hs:1,vs:1,le:45,ri:209,up:22,lo:22,sync:3,vmode:0"
+#endif
+
 /*
  * High Level Configuration Options
  */
@@ -143,7 +148,15 @@
 #define CONFIG_GENERIC_MMC
 #define CONFIG_MMC_SUNXI
 #define CONFIG_MMC_SUNXI_SLOT		0
+#ifdef CONFIG_ESA_FINAL
 #define CONFIG_ENV_IS_IN_MMC
+#elif defined(CONFIG_ESA_USB_UMS)
+#define CONFIG_ENV_IS_NOWHERE
+#elif defined(CONFIG_ESA_USB_DFU)
+#define CONFIG_ENV_IS_NOWHERE
+#else
+#define CONFIG_ENV_IS_NOWHERE
+#endif
 #define CONFIG_SYS_MMC_ENV_DEV		0	/* first detected MMC controller */
 #define CONFIG_SYS_MMC_MAX_DEVICE	4
 #endif
@@ -297,6 +310,8 @@ extern int soft_i2c_gpio_scl;
 
 #endif /* CONFIG_VIDEO */
 
+#define CONFIG_CMD_INI
+		
 /* Ethernet support */
 #ifdef CONFIG_SUNXI_EMAC
 #define CONFIG_PHY_ADDR		1
@@ -325,6 +340,18 @@ extern int soft_i2c_gpio_scl;
 #ifdef CONFIG_USB_MUSB_GADGET
 #define CONFIG_USB_FUNCTION_FASTBOOT
 #define CONFIG_USB_FUNCTION_MASS_STORAGE
+#endif
+
+#ifdef CONFIG_USB_GADGET_DOWNLOAD
+#define CONFIG_G_DNL_VENDOR_NUM		0x1f3a
+#define CONFIG_G_DNL_PRODUCT_NUM	0x1010
+#define CONFIG_G_DNL_MANUFACTURER	"Allwinner Technology"
+#endif
+
+#ifdef CONFIG_USB_FUNCTION_DFU
+#define CONFIG_CMD_DFU
+#define CONFIG_DFU_RAM
+#define CONFIG_DFU_MMC
 #endif
 
 #ifdef CONFIG_USB_FUNCTION_FASTBOOT
@@ -360,6 +387,11 @@ extern int soft_i2c_gpio_scl;
 
 #ifndef CONFIG_SPL_BUILD
 #include <config_distro_defaults.h>
+		
+#if defined CONFIG_BOOTDELAY
+#undef CONFIG_BOOTDELAY
+#endif
+#define CONFIG_BOOTDELAY 0
 
 #ifdef CONFIG_ARM64
 /*
@@ -403,7 +435,15 @@ extern int soft_i2c_gpio_scl;
 	"dfu_alt_info_ram=" \
 	"kernel ram " KERNEL_ADDR_R " 0x1000000;" \
 	"fdt ram " FDT_ADDR_R " 0x100000;" \
-	"ramdisk ram " RAMDISK_ADDR_R " 0x4000000\0"
+	"ramdisk ram " RAMDISK_ADDR_R " 0x4000000\0" \
+	"dfu_alt_info=" \
+		"boot part O 1;" \
+		"recovery part O 2;" \
+		"system part O 3;" \
+		"data part O 5;" \
+		"misc part O 6;" \
+		"cache part O 7;" \
+		"UDISK part O 8\0" \
 
 #ifdef CONFIG_MMC
 #define BOOT_TARGET_DEVICES_MMC(func) func(MMC, mmc, 0)
@@ -439,14 +479,79 @@ extern int soft_i2c_gpio_scl;
 #define BOOTENV_DEV_NAME_FEL(devtypeu, devtypel, instance) \
 	"fel "
 
+/*#define BOOTENV_DEV_MMC_ESA(devtypeu, devtypel, instance) \
+	"bootcmd_mmc_esa=" \
+		"echo '(mmc environnement-sa boot)'; " \
+		"load mmc 0:1 ${kernel_addr_r} boot.img; " \
+		"load mmc 0:1 ${fdt_addr_r} script.bin; " \
+		"bootm ${kernel_addr_r}\0"*/
+/*	"bootcmd_mmc_esa=" \
+		"echo '(mmc environnement-sa boot)'; " \
+		"load mmc 0:1 ${kernel_addr_r} boot.img; " \
+		"bootm ${kernel_addr_r}\0"*/
+
+#ifdef CONFIG_ESA_FINAL
+#define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
+	"bootcmd_boot_esa=" \
+		"echo '(mmc environnement-sa boot)'; " \
+		"load mmc 0:1 0x43000000 version; " \
+		"ini all 0x43000000; " \
+		"setenv bootargs 'root=/dev/mmcblk0p1 rootwait ro loglevel=3 console=ttyS0,115200'; " \
+		"setenv esalogo \"if 'esaswitch 3' = '1'; then esascreen 1 ${esaversion}; else esascreen 0 ${esaversion}; fi\"; " \
+		"run esalogo; " \
+		"load mmc 0:1 0x43000000 script.bin; " \
+		"load mmc 0:1 0x42000000 zImage; " \
+		"bootz 0x42000000\0"
+						
+#define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance) \
+	"boot_esa "
+#elif defined(CONFIG_ESA_USB_UMS)
+#define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
+	"bootcmd_boot_esa=" \
+		"echo '(ums environnement-sa boot)'; " \
+		"ums 0 mmc 0; " \
+		"ums 0 mmc 1\0"
+						
+#define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance) \
+	"boot_esa "
+#elif defined(CONFIG_ESA_USB_DFU)
+#define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
+	"bootcmd_boot_esa=" \
+		"echo '(dfu environnement-sa boot)'; " \
+		"setenv dfu_alt_info 'system part 0 1'; " \
+		"dfu 0 mmc 0; " \
+		"dfu 0 mmc 1\0"
+						
+#define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance) \
+	"boot_esa "
+#elif defined(CONFIG_ESA_FINAL_ANDROID)
+#define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
+	"bootcmd_boot_esa=" \
+		"echo '(mmc environnement-sa boot android)'; " \
+		"setenv bootargs 'rootwait ro loglevel=5 console=ttyS0,115200'; " \
+		"load mmc 0:1 0x42000000 boot.img; " \
+		"load mmc 0:1 0x43000000 sys_config_android.bin; " \
+		"bootm 0x42000000\0"
+						
+#define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance) \
+	"boot_esa "
+#elif defined(CONFIG_ESA_USB_DFU_ANDROID)
+#define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
+	"bootcmd_boot_esa=" \
+		"echo '(dfu environnement-sa boot)'; " \
+		"setenv dfu_alt_info 'system part 0 3'; " \
+		"dfu 0 mmc 0; " \
+		"dfu 0 mmc 1\0"
+						
+#define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance) \
+	"boot_esa "
+#else
+#define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance)
+#define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance)					
+#endif
+
 #define BOOT_TARGET_DEVICES(func) \
-	func(FEL, fel, na) \
-	BOOT_TARGET_DEVICES_MMC(func) \
-	BOOT_TARGET_DEVICES_MMC_EXTRA(func) \
-	BOOT_TARGET_DEVICES_SCSI(func) \
-	BOOT_TARGET_DEVICES_USB(func) \
-	func(PXE, pxe, na) \
-	func(DHCP, dhcp, na)
+	func(BOOT_ESA, mmc_esa, na)
 
 #ifdef CONFIG_OLD_SUNXI_KERNEL_COMPAT
 #define BOOTCMD_SUNXI_COMPAT \
@@ -496,7 +601,7 @@ extern int soft_i2c_gpio_scl;
 	"fdtfile=" CONFIG_DEFAULT_DEVICE_TREE ".dtb\0" \
 	"console=ttyS0,115200\0" \
 	BOOTCMD_SUNXI_COMPAT \
-	BOOTENV
+	BOOTENV 
 
 #else /* ifndef CONFIG_SPL_BUILD */
 #define CONFIG_EXTRA_ENV_SETTINGS
