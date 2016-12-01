@@ -33,6 +33,7 @@
 #include <nand.h>
 #include <net.h>
 #include <sy8106a.h>
+#include <i2c.h>
 
 #if defined CONFIG_VIDEO_LCD_PANEL_I2C && !(defined CONFIG_SPL_BUILD)
 /* So that we can use pin names in Kconfig and sunxi_name_to_gpio() */
@@ -481,6 +482,14 @@ void sunxi_board_init(void)
 {
 	int power_failed = 0;
 	unsigned long ramsize;
+	int ret;
+
+	/* AXP is at bus 1. */
+	ret = i2c_set_bus_num(CONFIG_I2C_DEFAULT_BUS);
+	if (ret) {
+		puts("Cannot select EEPROM I2C bus.\n");
+		return ;
+	}
 
 #ifdef CONFIG_SY8106A_POWER
 	power_failed = sy8106a_set_vout1(CONFIG_SY8106A_VOUT1_VOLT);
