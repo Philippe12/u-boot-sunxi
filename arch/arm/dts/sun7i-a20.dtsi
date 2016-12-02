@@ -70,7 +70,7 @@
 			clocks = <&ahb_gates 36>, <&ahb_gates 43>,
 				 <&ahb_gates 44>, <&de_be0_clk>,
 				 <&tcon0_ch1_clk>, <&dram_gates 26>;
-			status = "disabled";
+			status = "ok";
 		};
 
 		framebuffer@1 {

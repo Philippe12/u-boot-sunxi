@@ -38,6 +38,18 @@ config AUTOBOOT
 	help
 	  This enables the autoboot.  See doc/README.autoboot for detail.
 
+config CMD_ESASCREEN
+	bool "esascreen"
+	default n
+	help
+	  ESA screen
+
+config CMD_INI
+	bool "ini file"
+	default n
+	help
+	  ini file
+
 config AUTOBOOT_KEYED
 	bool "Stop autobooting via specific input key / string"
 	default n

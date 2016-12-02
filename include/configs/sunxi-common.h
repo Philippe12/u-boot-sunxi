@@ -33,7 +33,7 @@
 #endif
 
 /*LCD*/
-#ifdef CONFIG_ESA_LVDS
+#ifdef ESA_LVDS
 #define CONFIG_VIDEO_LCD_MODE	"x:800,y:480,depth:18,pclk_khz:33000,hs:1,vs:1,le:45,ri:209,up:22,lo:22,sync:3,vmode:0"
 #endif
 
@@ -148,12 +148,8 @@
 #define CONFIG_GENERIC_MMC
 #define CONFIG_MMC_SUNXI
 #define CONFIG_MMC_SUNXI_SLOT		0
-#ifdef CONFIG_ESA_FINAL
+#if defined (ESA_FINAL) || defined (ESA_FINAL_ANDROID)
 #define CONFIG_ENV_IS_IN_MMC
-#elif defined(CONFIG_ESA_USB_UMS)
-#define CONFIG_ENV_IS_NOWHERE
-#elif defined(CONFIG_ESA_USB_DFU)
-#define CONFIG_ENV_IS_NOWHERE
 #else
 #define CONFIG_ENV_IS_NOWHERE
 #endif
@@ -309,8 +305,6 @@ extern int soft_i2c_gpio_scl;
 /* stop x86 thinking in cfbconsole from trying to init a pc keyboard */
 
 #endif /* CONFIG_VIDEO */
-
-#define CONFIG_CMD_INI
 		
 /* Ethernet support */
 #ifdef CONFIG_SUNXI_EMAC
@@ -325,7 +319,7 @@ extern int soft_i2c_gpio_scl;
 #define CONFIG_MII			/* MII PHY management		*/
 #define CONFIG_PHY_REALTEK
 #endif
-
+		
 #ifdef CONFIG_USB_EHCI_HCD
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_USB_OHCI_SUNXI
@@ -338,14 +332,20 @@ extern int soft_i2c_gpio_scl;
 #endif
 
 #ifdef CONFIG_USB_MUSB_GADGET
+#define CONFIG_USB_GADGET
 #define CONFIG_USB_FUNCTION_FASTBOOT
 #define CONFIG_USB_FUNCTION_MASS_STORAGE
+#define CONFIG_CMD_USB_MASS_STORAGE
+#define CONFIG_USB_GADGET_DOWNLOAD
+#define CONFIG_USB_FUNCTION_DFU
 #endif
-
+		
 #ifdef CONFIG_USB_GADGET_DOWNLOAD
+#define CONFIG_USB_GADGET_DUALSPEED
 #define CONFIG_G_DNL_VENDOR_NUM		0x1f3a
 #define CONFIG_G_DNL_PRODUCT_NUM	0x1010
 #define CONFIG_G_DNL_MANUFACTURER	"Allwinner Technology"
+#define CONFIG_USB_GADGET_VBUS_DRAW 2
 #endif
 
 #ifdef CONFIG_USB_FUNCTION_DFU
@@ -490,7 +490,7 @@ extern int soft_i2c_gpio_scl;
 		"load mmc 0:1 ${kernel_addr_r} boot.img; " \
 		"bootm ${kernel_addr_r}\0"*/
 
-#ifdef CONFIG_ESA_FINAL
+#ifdef ESA_FINAL
 #define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
 	"bootcmd_boot_esa=" \
 		"echo '(mmc environnement-sa boot)'; " \
@@ -505,7 +505,7 @@ extern int soft_i2c_gpio_scl;
 						
 #define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance) \
 	"boot_esa "
-#elif defined(CONFIG_ESA_USB_UMS)
+#elif defined(ESA_USB_UMS)
 #define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
 	"bootcmd_boot_esa=" \
 		"echo '(ums environnement-sa boot)'; " \
@@ -514,7 +514,7 @@ extern int soft_i2c_gpio_scl;
 						
 #define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance) \
 	"boot_esa "
-#elif defined(CONFIG_ESA_USB_DFU)
+#elif defined(ESA_USB_DFU)
 #define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
 	"bootcmd_boot_esa=" \
 		"echo '(dfu environnement-sa boot)'; " \
@@ -524,7 +524,7 @@ extern int soft_i2c_gpio_scl;
 						
 #define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance) \
 	"boot_esa "
-#elif defined(CONFIG_ESA_FINAL_ANDROID)
+#elif defined(ESA_FINAL_ANDROID)
 #define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
 	"bootcmd_boot_esa=" \
 		"echo '(mmc environnement-sa boot android)'; " \
@@ -535,7 +535,7 @@ extern int soft_i2c_gpio_scl;
 						
 #define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance) \
 	"boot_esa "
-#elif defined(CONFIG_ESA_USB_DFU_ANDROID)
+#elif defined(ESA_USB_DFU_ANDROID)
 #define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
 	"bootcmd_boot_esa=" \
 		"echo '(dfu environnement-sa boot)'; " \

@@ -65,6 +65,11 @@
 
 	chosen {
 		stdout-path = "serial0:115200n8";
+
+		framebuffer@0 {
+			status = "okay";
+		};
+
 	};
 
 	leds {
@@ -200,7 +205,7 @@
 	bus-width = <4>;
 	cd-gpios = <&pio 7 1 GPIO_ACTIVE_HIGH>; /* PH1 */
 	cd-inverted;
-	status = "disabled";
+	status = "okay";
 };
 
 &mmc2 {
