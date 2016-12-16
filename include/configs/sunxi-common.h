@@ -35,8 +35,25 @@
 /*LCD*/
 #ifdef ESA_LVDS
 #define CONFIG_VIDEO_LCD_MODE	"x:800,y:480,depth:18,pclk_khz:33000,hs:1,vs:1,le:45,ri:209,up:22,lo:22,sync:3,vmode:0"
+#define CONFIG_VIDEO
+#define CONFIG_CFB_CONSOLE
+#define CONFIG_VIDEO_BPP16
+/*#define CONFIG_CFB_CONSOLE_ANSI
+#define CONFIG_VGA_AS_SINGLE_DEVICE
+#define CONFIG_VIDEO_SW_CURSOR
+#define CONFIG_CONSOLE_EXTRA_INFO
+#define CONFIG_DM_VIDEO*/
+/*#define CONFIG_LCD
+#define CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
+#define CONFIG_SPLASH_SCREEN
+#define CONFIG_VIDEO_BPP8
+#define CONFIG_VIDEO_BPP32
+#define CONFIG_VIDEO_LOGO
+#define CONFIG_VIDEO_BMP_LOGO
+/*#define CONFIG_CONSOLE_NORMAL*/
+#define CONFIG_CMD_BMP
 #endif
-
+/*load mmc 1:1 0x42000000 initlogo.bmp; bmp display 0x42000000*/
 /*
  * High Level Configuration Options
  */

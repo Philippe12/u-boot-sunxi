@@ -66,9 +66,9 @@
 	chosen {
 		stdout-path = "serial0:115200n8";
 
-		framebuffer@0 {
+/*		framebuffer@0 {
 			status = "okay";
-		};
+		};*/
 
 	};
 
