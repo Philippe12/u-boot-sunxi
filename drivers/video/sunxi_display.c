@@ -23,6 +23,8 @@
 #include <i2c.h>
 #include <malloc.h>
 #include <video_fb.h>
+#include <bmp_layout.h>
+#include <watchdog.h>
 #include "videomodes.h"
 #include "anx9804.h"
 #include "hitachi_tx18d42vm_lcd.h"
@@ -455,6 +457,14 @@ static void sunxi_composer_init(void)
 		writel(0, SUNXI_DE_BE0_BASE + i);
 
 	setbits_le32(&de_be->mode, SUNXI_DE_BE_MODE_ENABLE);
+}
+
+static void sunxi_composer_close(void)
+{
+	struct sunxi_de_be_reg * const de_be =
+		(struct sunxi_de_be_reg *)SUNXI_DE_BE0_BASE;
+
+	clrbits_le32(&de_be->mode, SUNXI_DE_BE_MODE_ENABLE);
 }
 
 static u32 sunxi_rgb2yuv_coef[12] = {
@@ -1488,8 +1498,9 @@ void *video_hw_init(void)
 	       sunxi_get_mon_desc(sunxi_display.monitor),
 	       overscan_x, overscan_y);
 
-	gd->fb_base = gd->bd->bi_dram[0].start +
-		      gd->bd->bi_dram[0].size - sunxi_display.fb_size;
+//	gd->fb_base = gd->bd->bi_dram[0].start +
+//		      gd->bd->bi_dram[0].size - sunxi_display.fb_size;
+	gd->fb_base = malloc( sunxi_display.fb_size );
 	sunxi_engines_init();
 
 	fb_dma_addr = gd->fb_base - CONFIG_SYS_SDRAM_BASE;
@@ -1597,3 +1608,768 @@ int sunxi_simplefb_setup(void *blob)
 	return ret;
 }
 #endif /* CONFIG_OF_BOARD_SETUP && CONFIG_VIDEO_DT_SIMPLEFB */
+
+
+#define VIDEO_VISIBLE_COLS	(pGD->winSizeX)
+#define VIDEO_VISIBLE_ROWS	(pGD->winSizeY)
+#define VIDEO_PIXEL_SIZE	(pGD->gdfBytesPP)
+#define VIDEO_DATA_FORMAT	(pGD->gdfIndex)
+#define VIDEO_FB_ADRS		(pGD->frameAdrs)
+
+#define VIDEO_COLS		VIDEO_VISIBLE_COLS
+#define VIDEO_ROWS		VIDEO_VISIBLE_ROWS
+#ifndef VIDEO_LINE_LEN
+#define VIDEO_LINE_LEN		(VIDEO_COLS * VIDEO_PIXEL_SIZE)
+#endif
+#define VIDEO_SIZE		(VIDEO_ROWS * VIDEO_LINE_LEN)
+
+/* Macros */
+#ifdef	VIDEO_FB_LITTLE_ENDIAN
+#define SWAP16(x)		((((x) & 0x00ff) << 8) | \
+				  ((x) >> 8) \
+				)
+#define SWAP32(x)		((((x) & 0x000000ff) << 24) | \
+				 (((x) & 0x0000ff00) <<  8) | \
+				 (((x) & 0x00ff0000) >>  8) | \
+				 (((x) & 0xff000000) >> 24)   \
+				)
+#define SHORTSWAP32(x)		((((x) & 0x000000ff) <<  8) | \
+				 (((x) & 0x0000ff00) >>  8) | \
+				 (((x) & 0x00ff0000) <<  8) | \
+				 (((x) & 0xff000000) >>  8)   \
+				)
+#else
+#define SWAP16(x)		(x)
+#define SWAP32(x)		(x)
+#if defined(VIDEO_FB_16BPP_WORD_SWAP)
+#define SHORTSWAP32(x)		(((x) >> 16) | ((x) << 16))
+#else
+#define SHORTSWAP32(x)		(x)
+#endif
+#endif
+
+/* Locals */
+static GraphicDevice *pGD;	/* Pointer to Graphic array */
+static void *video_fb_address;	/* frame buffer address */
+static int cfb_do_flush_cache;
+
+
+
+#if defined(CONFIG_CMD_BMP) || defined(CONFIG_SPLASH_SCREEN)
+
+#define FILL_8BIT_332RGB(r,g,b)	{			\
+	*fb = ((r>>5)<<5) | ((g>>5)<<2) | (b>>6);	\
+	fb ++;						\
+}
+
+#define FILL_15BIT_555RGB(r,g,b) {			\
+	*(unsigned short *)fb =				\
+		SWAP16((unsigned short)(((r>>3)<<10) |	\
+					((g>>3)<<5)  |	\
+					 (b>>3)));	\
+	fb += 2;					\
+}
+
+#define FILL_16BIT_565RGB(r,g,b) {			\
+	*(unsigned short *)fb =				\
+		SWAP16((unsigned short)((((r)>>3)<<11)| \
+					(((g)>>2)<<5) | \
+					 ((b)>>3)));	\
+	fb += 2;					\
+}
+
+#define FILL_32BIT_X888RGB(r,g,b) {			\
+	*(unsigned long *)fb =				\
+		SWAP32((unsigned long)(((r<<16) |	\
+					(g<<8)  |	\
+					 b)));		\
+	fb += 4;					\
+}
+
+#ifdef VIDEO_FB_LITTLE_ENDIAN
+#define FILL_24BIT_888RGB(r,g,b) {			\
+	fb[0] = b;					\
+	fb[1] = g;					\
+	fb[2] = r;					\
+	fb += 3;					\
+}
+#else
+#define FILL_24BIT_888RGB(r,g,b) {			\
+	fb[0] = r;					\
+	fb[1] = g;					\
+	fb[2] = b;					\
+	fb += 3;					\
+}
+#endif
+
+static int cfb_fb_is_in_dram(void)
+{
+	bd_t *bd = gd->bd;
+#if defined(CONFIG_ARM) || defined(CONFIG_AVR32) || defined(COFNIG_NDS32) || \
+defined(CONFIG_SANDBOX) || defined(CONFIG_X86)
+	ulong start, end;
+	int i;
+
+	for (i = 0; i < CONFIG_NR_DRAM_BANKS; ++i) {
+		start = bd->bi_dram[i].start;
+		end = bd->bi_dram[i].start + bd->bi_dram[i].size - 1;
+		if ((ulong)video_fb_address >= start &&
+		    (ulong)video_fb_address < end)
+			return 1;
+	}
+#else
+	if ((ulong)video_fb_address >= bd->bi_memstart &&
+	    (ulong)video_fb_address < bd->bi_memstart + bd->bi_memsize)
+		return 1;
+#endif
+	return 0;
+}
+
+/*
+ * RLE8 bitmap support
+ */
+
+#ifdef CONFIG_VIDEO_BMP_RLE8
+/* Pre-calculated color table entry */
+struct palette {
+	union {
+		unsigned short w;	/* word */
+		unsigned int dw;	/* double word */
+	} ce;				/* color entry */
+};
+
+/*
+ * Helper to draw encoded/unencoded run.
+ */
+static void draw_bitmap(uchar **fb, uchar *bm, struct palette *p,
+			int cnt, int enc)
+{
+	ulong addr = (ulong) *fb;
+	int *off;
+	int enc_off = 1;
+	int i;
+
+	/*
+	 * Setup offset of the color index in the bitmap.
+	 * Color index of encoded run is at offset 1.
+	 */
+	off = enc ? &enc_off : &i;
+
+	switch (VIDEO_DATA_FORMAT) {
+	case GDF__8BIT_INDEX:
+		for (i = 0; i < cnt; i++)
+			*(unsigned char *) addr++ = bm[*off];
+		break;
+	case GDF_15BIT_555RGB:
+	case GDF_16BIT_565RGB:
+		/* differences handled while pre-calculating palette */
+		for (i = 0; i < cnt; i++) {
+			*(unsigned short *) addr = p[bm[*off]].ce.w;
+			addr += 2;
+		}
+		break;
+	case GDF_32BIT_X888RGB:
+		for (i = 0; i < cnt; i++) {
+			*(unsigned long *) addr = p[bm[*off]].ce.dw;
+			addr += 4;
+		}
+		break;
+	}
+	*fb = (uchar *) addr;	/* return modified address */
+}
+
+static int display_rle8_bitmap(struct bmp_image *img, int xoff, int yoff,
+			       int width, int height)
+{
+	unsigned char *bm;
+	unsigned char *fbp;
+	unsigned int cnt, runlen;
+	int decode = 1;
+	int x, y, bpp, i, ncolors;
+	struct palette p[256];
+	struct bmp_color_table_entry cte;
+	int green_shift, red_off;
+	int limit = (VIDEO_LINE_LEN / VIDEO_PIXEL_SIZE) * VIDEO_ROWS;
+	int pixels = 0;
+
+	x = 0;
+	y = __le32_to_cpu(img->header.height) - 1;
+	ncolors = __le32_to_cpu(img->header.colors_used);
+	bpp = VIDEO_PIXEL_SIZE;
+	fbp = (unsigned char *) ((unsigned int) video_fb_address +
+				 (y + yoff) * VIDEO_LINE_LEN +
+				 xoff * bpp);
+
+	bm = (uchar *) img + __le32_to_cpu(img->header.data_offset);
+
+	/* pre-calculate and setup palette */
+	switch (VIDEO_DATA_FORMAT) {
+	case GDF__8BIT_INDEX:
+		for (i = 0; i < ncolors; i++) {
+			cte = img->color_table[i];
+			video_set_lut(i, cte.red, cte.green, cte.blue);
+		}
+		break;
+	case GDF_15BIT_555RGB:
+	case GDF_16BIT_565RGB:
+		if (VIDEO_DATA_FORMAT == GDF_15BIT_555RGB) {
+			green_shift = 3;
+			red_off = 10;
+		} else {
+			green_shift = 2;
+			red_off = 11;
+		}
+		for (i = 0; i < ncolors; i++) {
+			cte = img->color_table[i];
+			p[i].ce.w = SWAP16((unsigned short)
+					   (((cte.red >> 3) << red_off) |
+					    ((cte.green >> green_shift) << 5) |
+					    cte.blue >> 3));
+		}
+		break;
+	case GDF_32BIT_X888RGB:
+		for (i = 0; i < ncolors; i++) {
+			cte = img->color_table[i];
+			p[i].ce.dw = SWAP32((cte.red << 16) |
+					    (cte.green << 8) |
+					     cte.blue);
+		}
+		break;
+	default:
+		printf("RLE Bitmap unsupported in video mode 0x%x\n",
+		       VIDEO_DATA_FORMAT);
+		return -1;
+	}
+
+	while (decode) {
+		switch (bm[0]) {
+		case 0:
+			switch (bm[1]) {
+			case 0:
+				/* scan line end marker */
+				bm += 2;
+				x = 0;
+				y--;
+				fbp = (unsigned char *)
+					((unsigned int) video_fb_address +
+					 (y + yoff) * VIDEO_LINE_LEN +
+					 xoff * bpp);
+				continue;
+			case 1:
+				/* end of bitmap data marker */
+				decode = 0;
+				break;
+			case 2:
+				/* run offset marker */
+				x += bm[2];
+				y -= bm[3];
+				fbp = (unsigned char *)
+					((unsigned int) video_fb_address +
+					 (y + yoff) * VIDEO_LINE_LEN +
+					 xoff * bpp);
+				bm += 4;
+				break;
+			default:
+				/* unencoded run */
+				cnt = bm[1];
+				runlen = cnt;
+				pixels += cnt;
+				if (pixels > limit)
+					goto error;
+
+				bm += 2;
+				if (y < height) {
+					if (x >= width) {
+						x += runlen;
+						goto next_run;
+					}
+					if (x + runlen > width)
+						cnt = width - x;
+					draw_bitmap(&fbp, bm, p, cnt, 0);
+					x += runlen;
+				}
+next_run:
+				bm += runlen;
+				if (runlen & 1)
+					bm++;	/* 0 padding if length is odd */
+			}
+			break;
+		default:
+			/* encoded run */
+			cnt = bm[0];
+			runlen = cnt;
+			pixels += cnt;
+			if (pixels > limit)
+				goto error;
+
+			if (y < height) {     /* only draw into visible area */
+				if (x >= width) {
+					x += runlen;
+					bm += 2;
+					continue;
+				}
+				if (x + runlen > width)
+					cnt = width - x;
+				draw_bitmap(&fbp, bm, p, cnt, 1);
+				x += runlen;
+			}
+			bm += 2;
+			break;
+		}
+	}
+	return 0;
+error:
+	printf("Error: Too much encoded pixel data, validate your bitmap\n");
+	return -1;
+}
+#endif
+
+/*
+ * Display the BMP file located at address bmp_image.
+ */
+
+int video_display_bitmap(ulong bmp_image, int x, int y)
+{
+	ushort xcount, ycount;
+	uchar *fb;
+	struct bmp_image *bmp = (struct bmp_image *)bmp_image;
+	uchar *bmap;
+	ushort padded_line;
+	unsigned long width, height, bpp;
+	unsigned colors;
+	unsigned long compression;
+	struct bmp_color_table_entry cte;
+
+#ifdef CONFIG_VIDEO_BMP_GZIP
+	unsigned char *dst = NULL;
+	ulong len;
+#endif
+
+	WATCHDOG_RESET();
+
+	if (!((bmp->header.signature[0] == 'B') &&
+	      (bmp->header.signature[1] == 'M'))) {
+
+#ifdef CONFIG_VIDEO_BMP_GZIP
+		/*
+		 * Could be a gzipped bmp image, try to decrompress...
+		 */
+		len = CONFIG_SYS_VIDEO_LOGO_MAX_SIZE;
+		dst = malloc(CONFIG_SYS_VIDEO_LOGO_MAX_SIZE);
+		if (dst == NULL) {
+			printf("Error: malloc in gunzip failed!\n");
+			return 1;
+		}
+		/*
+		 * NB: we need to force offset of +2
+		 * See doc/README.displaying-bmps
+		 */
+		if (gunzip(dst+2, CONFIG_SYS_VIDEO_LOGO_MAX_SIZE-2,
+			   (uchar *) bmp_image,
+			   &len) != 0) {
+			printf("Error: no valid bmp or bmp.gz image at %lx\n",
+			       bmp_image);
+			free(dst);
+			return 1;
+		}
+		if (len == CONFIG_SYS_VIDEO_LOGO_MAX_SIZE) {
+			printf("Image could be truncated "
+				"(increase CONFIG_SYS_VIDEO_LOGO_MAX_SIZE)!\n");
+		}
+
+		/*
+		 * Set addr to decompressed image
+		 */
+		bmp = (struct bmp_image *)(dst+2);
+
+		if (!((bmp->header.signature[0] == 'B') &&
+		      (bmp->header.signature[1] == 'M'))) {
+			printf("Error: no valid bmp.gz image at %lx\n",
+			       bmp_image);
+			free(dst);
+			return 1;
+		}
+#else
+		printf("Error: no valid bmp image at %lx\n", bmp_image);
+		return 1;
+#endif /* CONFIG_VIDEO_BMP_GZIP */
+	}
+
+	width = le32_to_cpu(bmp->header.width);
+	height = le32_to_cpu(bmp->header.height);
+	bpp = le16_to_cpu(bmp->header.bit_count);
+	colors = le32_to_cpu(bmp->header.colors_used);
+	compression = le32_to_cpu(bmp->header.compression);
+
+	debug("Display-bmp: %ld x %ld  with %d colors\n",
+	      width, height, colors);
+
+	if (compression != BMP_BI_RGB
+#ifdef CONFIG_VIDEO_BMP_RLE8
+	    && compression != BMP_BI_RLE8
+#endif
+		) {
+		printf("Error: compression type %ld not supported\n",
+		       compression);
+#ifdef CONFIG_VIDEO_BMP_GZIP
+		if (dst)
+			free(dst);
+#endif
+		return 1;
+	}
+
+	padded_line = (((width * bpp + 7) / 8) + 3) & ~0x3;
+
+#ifdef CONFIG_SPLASH_SCREEN_ALIGN
+	if (x == BMP_ALIGN_CENTER)
+		x = max(0, (int)(VIDEO_VISIBLE_COLS - width) / 2);
+	else if (x < 0)
+		x = max(0, (int)(VIDEO_VISIBLE_COLS - width + x + 1));
+
+	if (y == BMP_ALIGN_CENTER)
+		y = max(0, (int)(VIDEO_VISIBLE_ROWS - height) / 2);
+	else if (y < 0)
+		y = max(0, (int)(VIDEO_VISIBLE_ROWS - height + y + 1));
+#endif /* CONFIG_SPLASH_SCREEN_ALIGN */
+
+	/*
+	 * Just ignore elements which are completely beyond screen
+	 * dimensions.
+	 */
+	if ((x >= VIDEO_VISIBLE_COLS) || (y >= VIDEO_VISIBLE_ROWS))
+		return 0;
+
+	if ((x + width) > VIDEO_VISIBLE_COLS)
+		width = VIDEO_VISIBLE_COLS - x;
+	if ((y + height) > VIDEO_VISIBLE_ROWS)
+		height = VIDEO_VISIBLE_ROWS - y;
+
+	bmap = (uchar *) bmp + le32_to_cpu(bmp->header.data_offset);
+	fb = (uchar *) (video_fb_address +
+			((y + height - 1) * VIDEO_LINE_LEN) +
+			x * VIDEO_PIXEL_SIZE);
+
+#ifdef CONFIG_VIDEO_BMP_RLE8
+	if (compression == BMP_BI_RLE8) {
+		return display_rle8_bitmap(bmp, x, y, width, height);
+	}
+#endif
+
+	/* We handle only 4, 8, or 24 bpp bitmaps */
+	switch (le16_to_cpu(bmp->header.bit_count)) {
+	case 4:
+		padded_line -= width / 2;
+		ycount = height;
+
+		switch (VIDEO_DATA_FORMAT) {
+		case GDF_32BIT_X888RGB:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				/*
+				 * Don't assume that 'width' is an
+				 * even number
+				 */
+				for (xcount = 0; xcount < width; xcount++) {
+					uchar idx;
+
+					if (xcount & 1) {
+						idx = *bmap & 0xF;
+						bmap++;
+					} else
+						idx = *bmap >> 4;
+					cte = bmp->color_table[idx];
+					FILL_32BIT_X888RGB(cte.red, cte.green,
+							   cte.blue);
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		default:
+			puts("4bpp bitmap unsupported with current "
+			     "video mode\n");
+			break;
+		}
+		break;
+
+	case 8:
+		padded_line -= width;
+		if (VIDEO_DATA_FORMAT == GDF__8BIT_INDEX) {
+			/* Copy colormap */
+			for (xcount = 0; xcount < colors; ++xcount) {
+				cte = bmp->color_table[xcount];
+				video_set_lut(xcount, cte.red, cte.green,
+					      cte.blue);
+			}
+		}
+		ycount = height;
+		switch (VIDEO_DATA_FORMAT) {
+		case GDF__8BIT_INDEX:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					*fb++ = *bmap++;
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		case GDF__8BIT_332RGB:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					cte = bmp->color_table[*bmap++];
+					FILL_8BIT_332RGB(cte.red, cte.green,
+							 cte.blue);
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		case GDF_15BIT_555RGB:
+			while (ycount--) {
+#if defined(VIDEO_FB_16BPP_PIXEL_SWAP)
+				int xpos = x;
+#endif
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					cte = bmp->color_table[*bmap++];
+#if defined(VIDEO_FB_16BPP_PIXEL_SWAP)
+					fill_555rgb_pswap(fb, xpos++, cte.red,
+							  cte.green,
+							  cte.blue);
+					fb += 2;
+#else
+					FILL_15BIT_555RGB(cte.red, cte.green,
+							  cte.blue);
+#endif
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		case GDF_16BIT_565RGB:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					cte = bmp->color_table[*bmap++];
+					FILL_16BIT_565RGB(cte.red, cte.green,
+							  cte.blue);
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		case GDF_32BIT_X888RGB:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					cte = bmp->color_table[*bmap++];
+					FILL_32BIT_X888RGB(cte.red, cte.green,
+							   cte.blue);
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		case GDF_24BIT_888RGB:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					cte = bmp->color_table[*bmap++];
+					FILL_24BIT_888RGB(cte.red, cte.green,
+							  cte.blue);
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		}
+		break;
+	case 24:
+		padded_line -= 3 * width;
+		ycount = height;
+		switch (VIDEO_DATA_FORMAT) {
+		case GDF__8BIT_332RGB:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					FILL_8BIT_332RGB(bmap[2], bmap[1],
+							 bmap[0]);
+					bmap += 3;
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		case GDF_15BIT_555RGB:
+			while (ycount--) {
+#if defined(VIDEO_FB_16BPP_PIXEL_SWAP)
+				int xpos = x;
+#endif
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+#if defined(VIDEO_FB_16BPP_PIXEL_SWAP)
+					fill_555rgb_pswap(fb, xpos++, bmap[2],
+							  bmap[1], bmap[0]);
+					fb += 2;
+#else
+					FILL_15BIT_555RGB(bmap[2], bmap[1],
+							  bmap[0]);
+#endif
+					bmap += 3;
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		case GDF_16BIT_565RGB:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					FILL_16BIT_565RGB(bmap[2], bmap[1],
+							  bmap[0]);
+					bmap += 3;
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		case GDF_32BIT_X888RGB:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					FILL_32BIT_X888RGB(bmap[2], bmap[1],
+							   bmap[0]);
+					bmap += 3;
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		case GDF_24BIT_888RGB:
+			while (ycount--) {
+				WATCHDOG_RESET();
+				xcount = width;
+				while (xcount--) {
+					FILL_24BIT_888RGB(bmap[2], bmap[1],
+							  bmap[0]);
+					bmap += 3;
+				}
+				bmap += padded_line;
+				fb -= VIDEO_LINE_LEN + width *
+					VIDEO_PIXEL_SIZE;
+			}
+			break;
+		default:
+			printf("Error: 24 bits/pixel bitmap incompatible "
+				"with current video mode\n");
+			break;
+		}
+		break;
+	default:
+		printf("Error: %d bit/pixel bitmaps not supported by U-Boot\n",
+			le16_to_cpu(bmp->header.bit_count));
+		break;
+	}
+
+#ifdef CONFIG_VIDEO_BMP_GZIP
+	if (dst) {
+		free(dst);
+	}
+#endif
+
+	if (cfb_do_flush_cache)
+		flush_cache(VIDEO_FB_ADRS, VIDEO_SIZE);
+		
+	return (0);
+}
+#endif
+
+static int do_clrlogo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	if (argc != 1)
+		return cmd_usage(cmdtp);
+
+	memset(video_fb_address, 0, VIDEO_SIZE);
+
+	if (cfb_do_flush_cache)
+		flush_cache(VIDEO_FB_ADRS, VIDEO_SIZE);
+	
+	return 0;
+}
+
+static int do_stoplcd(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	if (argc != 1)
+		return cmd_usage(cmdtp);
+
+	sunxi_composer_close();
+	return 0;
+}
+
+U_BOOT_CMD(
+	   clrlogo, 1, 0, do_clrlogo,
+	   "fill the boot logo area with black",
+	   " "
+	   );
+
+U_BOOT_CMD(
+	   stoplcd, 1, 0, do_stoplcd,
+	   "fill the boot logo area with black",
+	   " "
+	   );
+	   
+/*char bmp[]= {
+#include "sunxi_data.h"
+};
+*/
+int drv_video_init(void)
+{
+	pGD = video_hw_init();
+	if (pGD == NULL)
+		return -1;
+
+	cfb_do_flush_cache = 1;//cfb_fb_is_in_dram() && dcache_status();
+
+	video_fb_address = (void *) VIDEO_FB_ADRS;
+	memset(video_fb_address, 0, VIDEO_SIZE);
+
+//	video_display_bitmap((ulong)bmp, 0, 0);
+
+	if (cfb_do_flush_cache)
+		flush_cache(VIDEO_FB_ADRS, VIDEO_SIZE);
+		
+	return 1;
+}
+
+/*
+ * Do not enforce drivers (or board code) to provide empty
+ * video_set_lut() if they do not support 8 bpp format.
+ * Implement weak default function instead.
+ */
+__weak void video_set_lut(unsigned int index, unsigned char r,
+		     unsigned char g, unsigned char b)
+{
+}

@@ -34,26 +34,25 @@
 
 /*LCD*/
 #ifdef ESA_LVDS
-#define CONFIG_VIDEO_LCD_MODE	"x:800,y:480,depth:18,pclk_khz:33000,hs:1,vs:1,le:45,ri:209,up:22,lo:22,sync:3,vmode:0"
 #define CONFIG_VIDEO
-#define CONFIG_CFB_CONSOLE
-#define CONFIG_VIDEO_BPP16
-/*#define CONFIG_CFB_CONSOLE_ANSI
-#define CONFIG_VGA_AS_SINGLE_DEVICE
-#define CONFIG_VIDEO_SW_CURSOR
-#define CONFIG_CONSOLE_EXTRA_INFO
-#define CONFIG_DM_VIDEO*/
-/*#define CONFIG_LCD
-#define CONFIG_SYS_CONSOLE_OVERWRITE_ROUTINE
-#define CONFIG_SPLASH_SCREEN
-#define CONFIG_VIDEO_BPP8
-#define CONFIG_VIDEO_BPP32
-#define CONFIG_VIDEO_LOGO
-#define CONFIG_VIDEO_BMP_LOGO
-/*#define CONFIG_CONSOLE_NORMAL*/
+#define CONFIG_VIDEO_SUNXI
+#define CONFIG_VIDEO_HDMI
+#define CONFIG_VIDEO_VGA
+#define CONFIG_VIDEO_LCD_DCLK_PHASE 1
+#define CONFIG_VIDEO_LCD_POWER ""
+#define CONFIG_VIDEO_LCD_RESET ""
+#define CONFIG_VIDEO_LCD_BL_EN ""
+#define CONFIG_VIDEO_LCD_BL_PWM ""
+#define CONFIG_VIDEO_LCD_BL_PWM_ACTIVE_LOW
+#define CONFIG_VIDEO_LCD_IF_LVDS
+#define CONFIG_VIDEO_LCD_PANEL_LVDS
+#define CONFIG_VIDEO_LCD_MODE	"x:800,y:480,depth:18,pclk_khz:33000,hs:1,vs:1,le:45,ri:209,up:22,lo:22,sync:3,vmode:0"
+
 #define CONFIG_CMD_BMP
+#define CONFIG_VIDEO_BMP_RLE8
+
 #endif
-/*load mmc 1:1 0x42000000 initlogo.bmp; bmp display 0x42000000*/
+/*load mmc 1:1 0x42000000 bootlogo.bmp; bmp display 0x42000000*/
 /*
  * High Level Configuration Options
  */
@@ -545,6 +544,7 @@ extern int soft_i2c_gpio_scl;
 #define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
 	"bootcmd_boot_esa=" \
 		"echo '(mmc environnement-sa boot android)'; " \
+		"load mmc 0:1 0x44000000 bootlogo.bmp; bmp display 0x44000000; " \
 		"setenv bootargs 'rootwait ro loglevel=5 console=ttyS0,115200'; " \
 		"load mmc 0:1 0x42000000 boot.img; " \
 		"load mmc 0:1 0x43000000 sys_config_android.bin; " \
@@ -564,7 +564,7 @@ extern int soft_i2c_gpio_scl;
 	"boot_esa "
 #else
 #define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance)
-#define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance)					
+#define BOOTENV_DEV_NAME_BOOT_ESA(devtypeu, devtypel, instance)
 #endif
 
 #define BOOT_TARGET_DEVICES(func) \
