@@ -92,6 +92,10 @@ u32 spl_boot_device(void)
 	case USB_MODE:
 		return BOOT_DEVICE_DFU;
 #endif
+#ifdef CONFIG_SPL_SATA_SUPPORT
+	case SW_SATA_MODE:
+		return BOOT_DEVICE_SATA;
+#endif
 	default:
 		printf("Invalid Boot Mode:0x%x\n", bootmode);
 		break;
@@ -124,6 +128,8 @@ __weak void psu_init(void)
 #ifdef CONFIG_SPL_OS_BOOT
 int spl_start_uboot(void)
 {
+	handoff_setup();
+
 	return 0;
 }
 #endif

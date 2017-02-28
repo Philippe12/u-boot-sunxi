@@ -276,7 +276,7 @@ static int setup_mon_len(void)
 #elif defined(CONFIG_BLACKFIN) || defined(CONFIG_NIOS2) || \
 	defined(CONFIG_XTENSA)
 	gd->mon_len = CONFIG_SYS_MONITOR_LEN;
-#elif defined(CONFIG_NDS32)
+#elif defined(CONFIG_NDS32) || defined(CONFIG_SH)
 	gd->mon_len = (ulong)(&__bss_end) - (ulong)(&_start);
 #elif defined(CONFIG_SYS_MONITOR_BASE)
 	/* TODO: use (ulong)&__bss_end - (ulong)&__text_start; ? */
@@ -619,7 +619,8 @@ static int display_new_sp(void)
 	return 0;
 }
 
-#if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_MIPS)
+#if defined(CONFIG_M68K) || defined(CONFIG_MIPS) || defined(CONFIG_PPC) || \
+	defined(CONFIG_SH)
 static int setup_board_part1(void)
 {
 	bd_t *bd = gd->bd;
@@ -767,7 +768,8 @@ static int setup_reloc(void)
 }
 
 /* ARM calls relocate_code from its crt0.S */
-#if !defined(CONFIG_ARM) && !defined(CONFIG_SANDBOX)
+#if !defined(CONFIG_ARM) && !defined(CONFIG_SANDBOX) && \
+		!CONFIG_IS_ENABLED(X86_64)
 
 static int jump_to_copy(void)
 {
@@ -844,7 +846,7 @@ __weak int arch_cpu_init_dm(void)
 	return 0;
 }
 
-static init_fnc_t init_sequence_f[] = {
+static const init_fnc_t init_sequence_f[] = {
 #ifdef CONFIG_SANDBOX
 	setup_ram_buf,
 #endif
@@ -857,10 +859,6 @@ static init_fnc_t init_sequence_f[] = {
 #endif
 	initf_malloc,
 	initf_console_record,
-#if defined(CONFIG_MPC85xx) || defined(CONFIG_MPC86xx)
-	/* TODO: can this go into arch_cpu_init()? */
-	probecpu,
-#endif
 #if defined(CONFIG_X86) && defined(CONFIG_HAVE_FSP)
 	x86_fsp_init,
 #endif
@@ -884,13 +882,8 @@ static init_fnc_t init_sequence_f[] = {
 #endif
 #if defined(CONFIG_ARM) || defined(CONFIG_MIPS) || \
 		defined(CONFIG_BLACKFIN) || defined(CONFIG_NDS32) || \
-		defined(CONFIG_SPARC)
+		defined(CONFIG_SH) || defined(CONFIG_SPARC)
 	timer_init,		/* initialize timer */
-#endif
-#ifdef CONFIG_SYS_ALLOC_DPRAM
-#if !defined(CONFIG_CPM2)
-	dpram_init,
-#endif
 #endif
 #if defined(CONFIG_BOARD_POSTCLK_INIT)
 	board_postclk_init,
@@ -921,13 +914,12 @@ static init_fnc_t init_sequence_f[] = {
 #if defined(CONFIG_MPC83xx)
 	prt_83xx_rsr,
 #endif
-#if defined(CONFIG_PPC) || defined(CONFIG_M68K)
+#if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_SH)
 	checkcpu,
 #endif
+#if defined(CONFIG_DISPLAY_CPUINFO)
 	print_cpuinfo,		/* display cpu info (and speed) */
-#if defined(CONFIG_MPC5xxx)
-	prt_mpc5xxx_clks,
-#endif /* CONFIG_MPC5xxx */
+#endif
 #if defined(CONFIG_DISPLAY_BOARDINFO)
 	show_board_info,
 #endif
@@ -945,7 +937,8 @@ static init_fnc_t init_sequence_f[] = {
 	announce_dram_init,
 	/* TODO: unify all these dram functions? */
 #if defined(CONFIG_ARM) || defined(CONFIG_X86) || defined(CONFIG_NDS32) || \
-		defined(CONFIG_MICROBLAZE) || defined(CONFIG_AVR32)
+		defined(CONFIG_MICROBLAZE) || defined(CONFIG_AVR32) || \
+		defined(CONFIG_SH)
 	dram_init,		/* configure available RAM banks */
 #endif
 #if defined(CONFIG_MIPS) || defined(CONFIG_PPC) || defined(CONFIG_M68K)
@@ -1023,7 +1016,8 @@ static init_fnc_t init_sequence_f[] = {
 	reserve_stacks,
 	setup_dram_config,
 	show_dram_config,
-#if defined(CONFIG_PPC) || defined(CONFIG_M68K) || defined(CONFIG_MIPS)
+#if defined(CONFIG_M68K) || defined(CONFIG_MIPS) || defined(CONFIG_PPC) || \
+	defined(CONFIG_SH)
 	setup_board_part1,
 #endif
 #if defined(CONFIG_PPC) || defined(CONFIG_M68K)
@@ -1039,13 +1033,14 @@ static init_fnc_t init_sequence_f[] = {
 	setup_reloc,
 #if defined(CONFIG_X86) || defined(CONFIG_ARC)
 	copy_uboot_to_ram,
-	clear_bss,
 	do_elf_reloc_fixups,
+	clear_bss,
 #endif
 #if defined(CONFIG_XTENSA)
 	clear_bss,
 #endif
-#if !defined(CONFIG_ARM) && !defined(CONFIG_SANDBOX)
+#if !defined(CONFIG_ARM) && !defined(CONFIG_SANDBOX) && \
+		!CONFIG_IS_ENABLED(X86_64)
 	jump_to_copy,
 #endif
 	NULL,
@@ -1079,7 +1074,7 @@ void board_init_f(ulong boot_flags)
 		hang();
 
 #if !defined(CONFIG_ARM) && !defined(CONFIG_SANDBOX) && \
-		!defined(CONFIG_EFI_APP)
+		!defined(CONFIG_EFI_APP) && !CONFIG_IS_ENABLED(X86_64)
 	/* NOTREACHED - jump_to_copy() does not return */
 	hang();
 #endif
@@ -1103,8 +1098,10 @@ void board_init_f(ulong boot_flags)
  * NOTE: At present only x86 uses this route, but it is intended that
  * all archs will move to this when generic relocation is implemented.
  */
-static init_fnc_t init_sequence_f_r[] = {
+static const init_fnc_t init_sequence_f_r[] = {
+#if !CONFIG_IS_ENABLED(X86_64)
 	init_cache_f_r,
+#endif
 
 	NULL,
 };

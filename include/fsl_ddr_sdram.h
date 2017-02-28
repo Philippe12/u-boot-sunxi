@@ -173,6 +173,7 @@ typedef struct ddr4_spd_eeprom_s generic_spd_eeprom_t;
 
 /* DDR_CDR1 */
 #define DDR_CDR1_DHC_EN	0x80000000
+#define DDR_CDR1_V0PT9_EN	0x40000000
 #define DDR_CDR1_ODT_SHIFT	17
 #define DDR_CDR1_ODT_MASK	0x6
 #define DDR_CDR2_ODT_MASK	0x1
@@ -374,7 +375,8 @@ typedef struct memctl_options_s {
 	unsigned int additive_latency_override_value;
 
 	unsigned int clk_adjust;		/* */
-	unsigned int cpo_override;
+	unsigned int cpo_override;		/* override timing_cfg_2[CPO]*/
+	unsigned int cpo_sample;		/* optimize debug_29[24:31] */
 	unsigned int write_data_delay;		/* DQS adjust */
 
 	unsigned int cswl_override;

@@ -16,11 +16,8 @@
 
 #define CONFIG_VF610
 #define CONFIG_SYS_THUMB_BUILD
-#define CONFIG_USE_ARCH_MEMCPY
-#define CONFIG_USE_ARCH_MEMSET
 #define CONFIG_SYS_FSL_CLK
 
-#define CONFIG_ARCH_MISC_INIT
 #define CONFIG_DISPLAY_BOARDINFO_LATE	/* Calls show_board_info() */
 
 #define CONFIG_SKIP_LOWLEVEL_INIT
@@ -32,8 +29,6 @@
 
 /* Size of malloc() pool */
 #define CONFIG_SYS_MALLOC_LEN		(CONFIG_ENV_SIZE + 2 * 1024 * 1024)
-
-#define CONFIG_BOARD_EARLY_INIT_F
 
 /* Allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
@@ -58,15 +53,9 @@
 				"512k(u-boot-env),"		\
 				"-(ubi)"
 
-#define CONFIG_MMC
 #define CONFIG_FSL_ESDHC
 #define CONFIG_SYS_FSL_ESDHC_ADDR	0
 #define CONFIG_SYS_FSL_ESDHC_NUM	1
-
-#define CONFIG_SYS_FSL_ERRATUM_ESDHC111
-
-#define CONFIG_GENERIC_MMC
-#define CONFIG_DOS_PARTITION
 
 #define CONFIG_RBTREE
 #define CONFIG_LZO
@@ -84,8 +73,6 @@
 #define CONFIG_NETMASK		255.255.255.0
 #define CONFIG_SERVERIP		192.168.10.1
 
-#define CONFIG_BOARD_LATE_INIT
-
 #define CONFIG_LOADADDR			0x80008000
 #define CONFIG_FDTADDR			0x84000000
 
@@ -99,7 +86,7 @@
 	"${setupargs} ${vidargs}; echo Booting from MMC/SD card...; " \
 	"load mmc 0:2 ${kernel_addr_r} /boot/${kernel_file} && " \
 	"load mmc 0:2 ${fdt_addr_r} /boot/${soc}-colibri-${fdt_board}.dtb && " \
-	"bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
+	"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
 #define NFS_BOOTCMD \
 	"nfsargs=ip=:::::eth0: root=/dev/nfs\0"	\
@@ -108,7 +95,7 @@
 	"${setupargs} ${vidargs}; echo Booting from NFS...;" \
 	"dhcp ${kernel_addr_r} && "	\
 	"tftp ${fdt_addr_r} ${soc}-colibri-${fdt_board}.dtb && " \
-	"bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
+	"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
 #define UBI_BOOTCMD	\
 	"ubiargs=ubi.mtd=ubi root=ubi0:rootfs rootfstype=ubifs " \
@@ -119,7 +106,7 @@
 	"ubi part ubi && " \
 	"ubi read ${kernel_addr_r} kernel && " \
 	"ubi read ${fdt_addr_r} dtb && " \
-	"bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
+	"run fdt_fixup && bootz ${kernel_addr_r} - ${fdt_addr_r}\0" \
 
 #define CONFIG_BOOTCOMMAND "run ubiboot; run sdboot; run nfsboot"
 
@@ -131,6 +118,7 @@
 	"kernel_file=zImage\0" \
 	"fdt_file=${soc}-colibri-${fdt_board}.dtb\0" \
 	"fdt_board=eval-v3\0" \
+	"fdt_fixup=;\0" \
 	"defargs=\0" \
 	"console=ttyLP0\0" \
 	"setup=setenv setupargs " \
@@ -186,7 +174,6 @@
 	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
 
 /* Environment organization */
-#define CONFIG_SYS_NO_FLASH
 
 #ifdef CONFIG_ENV_IS_IN_MMC
 #define CONFIG_SYS_MMC_ENV_DEV		0
@@ -199,8 +186,6 @@
 #define CONFIG_ENV_RANGE		(4 * 64 * 2048)
 #define CONFIG_ENV_OFFSET		(12 * 64 * 2048)
 #endif
-
-#define CONFIG_SYS_NO_FLASH
 
 /* USB Host Support */
 #define CONFIG_USB_EHCI

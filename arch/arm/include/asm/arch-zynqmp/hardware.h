@@ -18,8 +18,6 @@
 
 #define ARASAN_NAND_BASEADDR	0xFF100000
 
-#define ZYNQMP_SATA_BASEADDR	0xFD0C0000
-
 #define ZYNQMP_USB0_XHCI_BASEADDR	0xFE200000
 #define ZYNQMP_USB1_XHCI_BASEADDR	0xFE300000
 
@@ -83,6 +81,9 @@ struct iou_scntr_secure {
 #define JTAG_MODE	0x00000000
 #define BOOT_MODE_USE_ALT	0x100
 #define BOOT_MODE_ALT_SHIFT	12
+/* SW secondary boot modes 0xa - 0xd */
+#define SW_USBHOST_MODE	0x0000000A
+#define SW_SATA_MODE	0x0000000B
 
 #define ZYNQMP_IOU_SLCR_BASEADDR	0xFF180000
 
@@ -142,5 +143,14 @@ struct csu_regs {
 };
 
 #define csu_base ((struct csu_regs *)ZYNQMP_CSU_BASEADDR)
+
+#define ZYNQMP_PMU_BASEADDR	0xFFD80000
+
+struct pmu_regs {
+	u32 reserved[18];
+	u32 gen_storage6; /* 0x48 */
+};
+
+#define pmu_base ((struct pmu_regs *)ZYNQMP_PMU_BASEADDR)
 
 #endif /* _ASM_ARCH_HARDWARE_H */

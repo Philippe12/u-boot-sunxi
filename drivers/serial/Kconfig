@@ -325,7 +325,7 @@ config MVEBU_A3700_UART
 
 config MXC_UART
 	bool "IMX serial port support"
-	depends on MX6
+	depends on MX5 || MX6
 	help
 	  If you have a machine based on a Motorola IMX CPU you
 	  can enable its onboard serial port by enabling this option.
@@ -352,7 +352,7 @@ config ROCKCHIP_SERIAL
 	depends on DM_SERIAL && SPL_OF_PLATDATA
 	help
 	  Select this to enable a debug UART for Rockchip devices when using
-	  CONFIG_OF_PLATDATA (i.e. a compiled-in device tree replacemenmt).
+	  CONFIG_SPL_OF_PLATDATA (i.e. a compiled-in device tree replacemenmt).
 	  This uses the ns16550 driver, converting the platdata from of-platdata
 	  to the ns16550 format.
 

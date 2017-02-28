@@ -244,7 +244,7 @@ static int ksz90x1_of_config_group(struct phy_device *phydev,
 		return -EOPNOTSUPP;
 
 	for (i = 0; i < ofcfg->grpsz; i++) {
-		val[i] = fdtdec_get_uint(gd->fdt_blob, dev->of_offset,
+		val[i] = fdtdec_get_uint(gd->fdt_blob, dev_of_offset(dev),
 					 ofcfg->grp[i].name, -1);
 		offset = ofcfg->grp[i].off;
 		if (val[i] == -1) {
@@ -300,10 +300,11 @@ static int ksz9021_of_config(struct phy_device *phydev)
 	};
 	int i, ret = 0;
 
-	for (i = 0; i < ARRAY_SIZE(ofcfg); i++)
+	for (i = 0; i < ARRAY_SIZE(ofcfg); i++) {
 		ret = ksz90x1_of_config_group(phydev, &(ofcfg[i]));
 		if (ret)
 			return ret;
+	}
 
 	return 0;
 }
@@ -408,10 +409,11 @@ static int ksz9031_of_config(struct phy_device *phydev)
 	};
 	int i, ret = 0;
 
-	for (i = 0; i < ARRAY_SIZE(ofcfg); i++)
+	for (i = 0; i < ARRAY_SIZE(ofcfg); i++) {
 		ret = ksz90x1_of_config_group(phydev, &(ofcfg[i]));
 		if (ret)
 			return ret;
+	}
 
 	return 0;
 }

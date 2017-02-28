@@ -13,8 +13,6 @@
 
 #define CONFIG_SYS_64BIT
 
-#define CONFIG_SYS_NO_FLASH
-
 #define MEM_BASE			0x00500000
 
 #define CONFIG_SYS_LOWMEM_BASE		MEM_BASE
@@ -48,9 +46,6 @@
 #define CONFIG_SYS_SERIAL1		0x87e025000000
 
 #define CONFIG_BAUDRATE			115200
-
-/* Command line configuration */
-#define CONFIG_MENU
 
 /* BOOTP options */
 #define CONFIG_BOOTP_BOOTFILESIZE

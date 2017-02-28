@@ -196,11 +196,12 @@ void __asm_switch_ttbr(u64 new_ttbr);
  *               For loading 32-bit OS, machine nr
  * @fdt_addr:    For loading 64-bit OS, zero.
  *               For loading 32-bit OS, fdt address.
+ * @arg4:	 Input argument.
  * @entry_point: kernel entry point
  * @es_flag:     execution state flag, ES_TO_AARCH64 or ES_TO_AARCH32
  */
 void armv8_switch_to_el2(u64 args, u64 mach_nr, u64 fdt_addr,
-			 u64 entry_point, u64 es_flag);
+			 u64 arg4, u64 entry_point, u64 es_flag);
 /*
  * Switch from EL2 to EL1 for ARMv8
  *
@@ -210,13 +211,14 @@ void armv8_switch_to_el2(u64 args, u64 mach_nr, u64 fdt_addr,
  *               For loading 32-bit OS, machine nr
  * @fdt_addr:    For loading 64-bit OS, zero.
  *               For loading 32-bit OS, fdt address.
+ * @arg4:	 Input argument.
  * @entry_point: kernel entry point
  * @es_flag:     execution state flag, ES_TO_AARCH64 or ES_TO_AARCH32
  */
 void armv8_switch_to_el1(u64 args, u64 mach_nr, u64 fdt_addr,
-			 u64 entry_point, u64 es_flag);
+			 u64 arg4, u64 entry_point, u64 es_flag);
 void armv8_el2_to_aarch32(u64 args, u64 mach_nr, u64 fdt_addr,
-			  u64 entry_point);
+			  u64 arg4, u64 entry_point);
 void gic_init(void);
 void gic_send_sgi(unsigned long sgino);
 void wait_for_wakeup(void);
@@ -236,6 +238,17 @@ void smc_call(struct pt_regs *args);
 
 void __noreturn psci_system_reset(void);
 void __noreturn psci_system_off(void);
+
+#ifdef CONFIG_ARMV8_PSCI
+extern char __secure_start[];
+extern char __secure_end[];
+extern char __secure_stack_start[];
+extern char __secure_stack_end[];
+
+void armv8_setup_psci(void);
+void psci_setup_vectors(void);
+void psci_arch_init(void);
+#endif
 
 #endif	/* __ASSEMBLY__ */
 

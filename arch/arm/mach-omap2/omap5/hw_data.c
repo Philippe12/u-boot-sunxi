@@ -28,17 +28,6 @@ struct vcores_data const **omap_vcores =
 struct omap_sys_ctrl_regs const **ctrl =
 	(struct omap_sys_ctrl_regs const **)OMAP_SRAM_SCRATCH_SYS_CTRL;
 
-/* OPP HIGH FREQUENCY for ES2.0 */
-static const struct dpll_params mpu_dpll_params_1_5ghz[NUM_SYS_CLKS] = {
-	{125, 0, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 12 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 13 MHz   */
-	{625, 6, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 16.8 MHz */
-	{625, 7, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 19.2 MHz */
-	{750, 12, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 26 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 27 MHz   */
-	{625, 15, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1}	/* 38.4 MHz */
-};
-
 /* OPP NOM FREQUENCY for ES1.0 */
 static const struct dpll_params mpu_dpll_params_800mhz[NUM_SYS_CLKS] = {
 	{200, 2, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 12 MHz   */
@@ -48,28 +37,6 @@ static const struct dpll_params mpu_dpll_params_800mhz[NUM_SYS_CLKS] = {
 	{400, 12, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 26 MHz   */
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 27 MHz   */
 	{375, 17, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1}	/* 38.4 MHz */
-};
-
-/* OPP LOW FREQUENCY for ES1.0 */
-static const struct dpll_params mpu_dpll_params_400mhz[NUM_SYS_CLKS] = {
-	{200, 2, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 12 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 13 MHz   */
-	{1000, 20, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 16.8 MHz */
-	{375, 8, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 19.2 MHz */
-	{400, 12, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 26 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 27 MHz   */
-	{375, 17, 2, -1, -1, -1, -1, -1, -1, -1, -1, -1}	/* 38.4 MHz */
-};
-
-/* OPP LOW FREQUENCY for ES2.0 */
-static const struct dpll_params mpu_dpll_params_499mhz[NUM_SYS_CLKS] = {
-	{499, 11, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 12 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 13 MHz   */
-	{297, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 16.8 MHz */
-	{493, 18, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 19.2 MHz */
-	{499, 25, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 26 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 27 MHz   */
-	{493, 37, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1}	/* 38.4 MHz */
 };
 
 /* OPP NOM FREQUENCY for OMAP5 ES2.0, and DRA7 ES1.0 */
@@ -114,28 +81,6 @@ static const struct dpll_params
 	{368, 8, 2, 1, -1, 4, 62, 5, -1, 5, 4, 6},		/* 26 MHz   */
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 27 MHz   */
 	{277, 9, 2, 1, -1, 4, 62, 5, -1, 5, 4, 6},		/* 38.4 MHz */
-};
-
-static const struct dpll_params
-			core_dpll_params_2128mhz_ddr266[NUM_SYS_CLKS] = {
-	{266, 2, 4, 8, 8, 8, 62, 10, -1, 10, 14, -1},		/* 12 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 13 MHz   */
-	{443, 6, 4, 8, 8, 8, 62, 10, -1, 10, 14, -1},		/* 16.8 MHz */
-	{277, 4, 4, 8, 8, 8, 62, 10, -1, 10, 14, -1},		/* 19.2 MHz */
-	{368, 8, 4, 8, 8, 8, 62, 10, -1, 10, 14, -1},		/* 26 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 27 MHz   */
-	{277, 9, 4, 8, 8, 8, 62, 10, -1, 10, 14, -1}		/* 38.4 MHz */
-};
-
-static const struct dpll_params
-			core_dpll_params_2128mhz_ddr266_es2[NUM_SYS_CLKS] = {
-	{266, 2, 4, 8, 8, 8, 62, 5, 12, 10, 14, 12},		/* 12 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 13 MHz   */
-	{443, 6, 4, 8, 8, 8, 62, 5, 12, 10, 14, 12},		/* 16.8 MHz */
-	{277, 4, 4, 8, 8, 8, 62, 5, 12, 10, 14, 12},		/* 19.2 MHz */
-	{368, 8, 4, 8, 8, 8, 62, 5, 12, 10, 14, 12},		/* 26 MHz   */
-	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 27 MHz   */
-	{277, 9, 4, 8, 8, 8, 62, 5, 12, 10, 14, 12}		/* 38.4 MHz */
 };
 
 static const struct dpll_params per_dpll_params_768mhz[NUM_SYS_CLKS] = {
@@ -189,6 +134,7 @@ static const struct dpll_params iva_dpll_params_2330mhz_dra7xx[NUM_SYS_CLKS] = {
 };
 
 /* ABE M & N values with sys_clk as source */
+#ifdef CONFIG_SYS_OMAP_ABE_SYSCK
 static const struct dpll_params
 		abe_dpll_params_sysclk_196608khz[NUM_SYS_CLKS] = {
 	{49, 5, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1},		/* 12 MHz   */
@@ -199,11 +145,14 @@ static const struct dpll_params
 	{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},	/* 27 MHz   */
 	{64, 24, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1}		/* 38.4 MHz */
 };
+#endif
 
 /* ABE M & N values with 32K clock as source */
+#ifndef CONFIG_SYS_OMAP_ABE_SYSCK
 static const struct dpll_params abe_dpll_params_32k_196608khz = {
 	750, 0, 1, 1, -1, -1, -1, -1, -1, -1, -1, -1
 };
+#endif
 
 /* ABE M & N values with sysclk2(22.5792 MHz) as input */
 static const struct dpll_params
@@ -336,31 +285,47 @@ struct pmic_data tps659038 = {
 	.gpio_en = 0,
 };
 
+/* The LP8732 and LP8733 are software-compatible, use common struct */
+struct pmic_data lp8733 = {
+	.base_offset = LP873X_BUCK_BASE_VOLT_UV,
+	.step = 5000, /* 5 mV represented in uV */
+	/*
+	 * Offset codes 0 - 0x13 Invalid.
+	 * Offset codes 0x14 0x17 give 10mV steps
+	 * Offset codes 0x17 through 0x9D give 5mV steps
+	 * So let us start with our operating range from .73V
+	 */
+	.start_code = 0x17,
+	.i2c_slave_addr = 0x60,
+	.pmic_bus_init  = gpi2c_init,
+	.pmic_write     = palmas_i2c_write_u8,
+};
+
 struct vcores_data omap5430_volts = {
-	.mpu.value = VDD_MPU,
+	.mpu.value[OPP_NOM] = VDD_MPU,
 	.mpu.addr = SMPS_REG_ADDR_12_MPU,
 	.mpu.pmic = &palmas,
 
-	.core.value = VDD_CORE,
+	.core.value[OPP_NOM] = VDD_CORE,
 	.core.addr = SMPS_REG_ADDR_8_CORE,
 	.core.pmic = &palmas,
 
-	.mm.value = VDD_MM,
+	.mm.value[OPP_NOM] = VDD_MM,
 	.mm.addr = SMPS_REG_ADDR_45_IVA,
 	.mm.pmic = &palmas,
 };
 
 struct vcores_data omap5430_volts_es2 = {
-	.mpu.value = VDD_MPU_ES2,
+	.mpu.value[OPP_NOM] = VDD_MPU_ES2,
 	.mpu.addr = SMPS_REG_ADDR_12_MPU,
 	.mpu.pmic = &palmas,
 	.mpu.abb_tx_done_mask = OMAP_ABB_MPU_TXDONE_MASK,
 
-	.core.value = VDD_CORE_ES2,
+	.core.value[OPP_NOM] = VDD_CORE_ES2,
 	.core.addr = SMPS_REG_ADDR_8_CORE,
 	.core.pmic = &palmas,
 
-	.mm.value = VDD_MM_ES2,
+	.mm.value[OPP_NOM] = VDD_MM_ES2,
 	.mm.addr = SMPS_REG_ADDR_45_IVA,
 	.mm.pmic = &palmas,
 	.mm.abb_tx_done_mask = OMAP_ABB_MM_TXDONE_MASK,
@@ -456,7 +421,7 @@ void enable_basic_clocks(void)
 void enable_basic_uboot_clocks(void)
 {
 	u32 const clk_domains_essential[] = {
-#if defined(CONFIG_DRA7XX) || defined(CONFIG_AM57XX)
+#if defined(CONFIG_DRA7XX)
 		(*prcm)->cm_ipu_clkstctrl,
 #endif
 		0
@@ -472,7 +437,7 @@ void enable_basic_uboot_clocks(void)
 		(*prcm)->cm_l4per_i2c2_clkctrl,
 		(*prcm)->cm_l4per_i2c3_clkctrl,
 		(*prcm)->cm_l4per_i2c4_clkctrl,
-#if defined(CONFIG_DRA7XX) || defined(CONFIG_AM57XX)
+#if defined(CONFIG_DRA7XX)
 		(*prcm)->cm_ipu_i2c5_clkctrl,
 #else
 		(*prcm)->cm_l4per_i2c5_clkctrl,

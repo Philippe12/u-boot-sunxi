@@ -566,9 +566,8 @@ static int emaclite_probe(struct udevice *dev)
 	emaclite->bus->read = emaclite_miiphy_read;
 	emaclite->bus->write = emaclite_miiphy_write;
 	emaclite->bus->priv = emaclite;
-	strcpy(emaclite->bus->name, "emaclite");
 
-	ret = mdio_register(emaclite->bus);
+	ret = mdio_register_seq(emaclite->bus, dev->seq);
 	if (ret)
 		return ret;
 
@@ -605,15 +604,15 @@ static int emaclite_ofdata_to_platdata(struct udevice *dev)
 
 	emaclite->phyaddr = -1;
 
-	offset = fdtdec_lookup_phandle(gd->fdt_blob, dev->of_offset,
+	offset = fdtdec_lookup_phandle(gd->fdt_blob, dev_of_offset(dev),
 				      "phy-handle");
 	if (offset > 0)
 		emaclite->phyaddr = fdtdec_get_int(gd->fdt_blob, offset,
 						   "reg", -1);
 
-	emaclite->txpp = fdtdec_get_int(gd->fdt_blob, dev->of_offset,
+	emaclite->txpp = fdtdec_get_int(gd->fdt_blob, dev_of_offset(dev),
 					"xlnx,tx-ping-pong", 0);
-	emaclite->rxpp = fdtdec_get_int(gd->fdt_blob, dev->of_offset,
+	emaclite->rxpp = fdtdec_get_int(gd->fdt_blob, dev_of_offset(dev),
 					"xlnx,rx-ping-pong", 0);
 
 	printf("EMACLITE: %lx, phyaddr %d, %d/%d\n", (ulong)emaclite->regs,

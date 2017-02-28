@@ -113,10 +113,11 @@ static int spi_child_post_bind(struct udevice *dev)
 {
 	struct dm_spi_slave_platdata *plat = dev_get_parent_platdata(dev);
 
-	if (dev->of_offset == -1)
+	if (dev_of_offset(dev) == -1)
 		return 0;
 
-	return spi_slave_ofdata_to_platdata(gd->fdt_blob, dev->of_offset, plat);
+	return spi_slave_ofdata_to_platdata(gd->fdt_blob, dev_of_offset(dev),
+					    plat);
 }
 #endif
 
@@ -125,7 +126,7 @@ static int spi_post_probe(struct udevice *bus)
 #if !CONFIG_IS_ENABLED(OF_PLATDATA)
 	struct dm_spi_bus *spi = dev_get_uclass_priv(bus);
 
-	spi->max_hz = fdtdec_get_int(gd->fdt_blob, bus->of_offset,
+	spi->max_hz = fdtdec_get_int(gd->fdt_blob, dev_of_offset(bus),
 				     "spi-max-frequency", 0);
 #endif
 #if defined(CONFIG_NEEDS_MANUAL_RELOC)
@@ -418,7 +419,7 @@ int spi_slave_ofdata_to_platdata(const void *blob, int node,
 		mode |= SPI_TX_QUAD;
 		break;
 	default:
-		error("spi-tx-bus-width %d not supported\n", value);
+		warn_non_spl("spi-tx-bus-width %d not supported\n", value);
 		break;
 	}
 
@@ -433,7 +434,7 @@ int spi_slave_ofdata_to_platdata(const void *blob, int node,
 		mode |= SPI_RX_QUAD;
 		break;
 	default:
-		error("spi-rx-bus-width %d not supported\n", value);
+		warn_non_spl("spi-rx-bus-width %d not supported\n", value);
 		break;
 	}
 

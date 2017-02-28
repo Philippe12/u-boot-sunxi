@@ -40,14 +40,20 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #if !CONFIG_IS_ENABLED(OF_CONTROL)
 static const struct ns16550_platdata am33xx_serial[] = {
-	{ .base = CONFIG_SYS_NS16550_COM1, .reg_shift = 2, .clock = CONFIG_SYS_NS16550_CLK },
+	{ .base = CONFIG_SYS_NS16550_COM1, .reg_shift = 2,
+	  .clock = CONFIG_SYS_NS16550_CLK, .fcr = UART_FCR_DEFVAL, },
 # ifdef CONFIG_SYS_NS16550_COM2
-	{ .base = CONFIG_SYS_NS16550_COM2, .reg_shift = 2, .clock = CONFIG_SYS_NS16550_CLK },
+	{ .base = CONFIG_SYS_NS16550_COM2, .reg_shift = 2,
+	  .clock = CONFIG_SYS_NS16550_CLK, .fcr = UART_FCR_DEFVAL, },
 #  ifdef CONFIG_SYS_NS16550_COM3
-	{ .base = CONFIG_SYS_NS16550_COM3, .reg_shift = 2, .clock = CONFIG_SYS_NS16550_CLK },
-	{ .base = CONFIG_SYS_NS16550_COM4, .reg_shift = 2, .clock = CONFIG_SYS_NS16550_CLK },
-	{ .base = CONFIG_SYS_NS16550_COM5, .reg_shift = 2, .clock = CONFIG_SYS_NS16550_CLK },
-	{ .base = CONFIG_SYS_NS16550_COM6, .reg_shift = 2, .clock = CONFIG_SYS_NS16550_CLK },
+	{ .base = CONFIG_SYS_NS16550_COM3, .reg_shift = 2,
+	  .clock = CONFIG_SYS_NS16550_CLK, .fcr = UART_FCR_DEFVAL, },
+	{ .base = CONFIG_SYS_NS16550_COM4, .reg_shift = 2,
+	  .clock = CONFIG_SYS_NS16550_CLK, .fcr = UART_FCR_DEFVAL, },
+	{ .base = CONFIG_SYS_NS16550_COM5, .reg_shift = 2,
+	  .clock = CONFIG_SYS_NS16550_CLK, .fcr = UART_FCR_DEFVAL, },
+	{ .base = CONFIG_SYS_NS16550_COM6, .reg_shift = 2,
+	  .clock = CONFIG_SYS_NS16550_CLK, .fcr = UART_FCR_DEFVAL, },
 #  endif
 # endif
 };
@@ -105,7 +111,7 @@ static const struct gpio_bank gpio_bank_am33xx[] = {
 const struct gpio_bank *const omap_gpio_bank = gpio_bank_am33xx;
 #endif
 
-#if defined(CONFIG_OMAP_HSMMC) && !defined(CONFIG_SPL_BUILD)
+#if defined(CONFIG_MMC_OMAP_HS) && !defined(CONFIG_SPL_BUILD)
 int cpu_mmc_init(bd_t *bis)
 {
 	int ret;
@@ -120,7 +126,8 @@ int cpu_mmc_init(bd_t *bis)
 
 /* AM33XX has two MUSB controllers which can be host or gadget */
 #if (defined(CONFIG_USB_MUSB_GADGET) || defined(CONFIG_USB_MUSB_HOST)) && \
-	(defined(CONFIG_AM335X_USB0) || defined(CONFIG_AM335X_USB1))
+	(defined(CONFIG_AM335X_USB0) || defined(CONFIG_AM335X_USB1)) && \
+	(!defined(CONFIG_DM_USB))
 static struct ctrl_dev *cdev = (struct ctrl_dev *)CTRL_DEVICE_BASE;
 
 /* USB 2.0 PHY Control */
@@ -147,7 +154,7 @@ static struct musb_hdrc_config musb_config = {
 };
 
 #ifdef CONFIG_AM335X_USB0
-static void am33xx_otg0_set_phy_power(u8 on)
+static void am33xx_otg0_set_phy_power(struct udevice *dev, u8 on)
 {
 	am33xx_usb_set_phy_power(on, &cdev->usb_ctrl0);
 }
@@ -166,7 +173,7 @@ static struct musb_hdrc_platform_data otg0_plat = {
 #endif
 
 #ifdef CONFIG_AM335X_USB1
-static void am33xx_otg1_set_phy_power(u8 on)
+static void am33xx_otg1_set_phy_power(struct udevice *dev, u8 on)
 {
 	am33xx_usb_set_phy_power(on, &cdev->usb_ctrl1);
 }
@@ -187,6 +194,7 @@ static struct musb_hdrc_platform_data otg1_plat = {
 
 int arch_misc_init(void)
 {
+#ifndef CONFIG_DM_USB
 #ifdef CONFIG_AM335X_USB0
 	musb_register(&otg0_plat, &otg0_board_data,
 		(void *)USB0_OTG_BASE);
@@ -194,6 +202,22 @@ int arch_misc_init(void)
 #ifdef CONFIG_AM335X_USB1
 	musb_register(&otg1_plat, &otg1_board_data,
 		(void *)USB1_OTG_BASE);
+#endif
+#else
+	struct udevice *dev;
+	int ret;
+
+	ret = uclass_first_device(UCLASS_MISC, &dev);
+	if (ret || !dev)
+		return ret;
+
+#if defined(CONFIG_DM_ETH) && defined(CONFIG_USB_ETHER)
+	ret = usb_ether_init();
+	if (ret) {
+		error("USB ether init failed\n");
+		return ret;
+	}
+#endif
 #endif
 	return 0;
 }

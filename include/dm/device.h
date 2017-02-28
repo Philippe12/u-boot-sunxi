@@ -121,6 +121,16 @@ struct udevice {
 /* Returns non-zero if the device is active (probed and not removed) */
 #define device_active(dev)	((dev)->flags & DM_FLAG_ACTIVATED)
 
+static inline int dev_of_offset(const struct udevice *dev)
+{
+	return dev->of_offset;
+}
+
+static inline void dev_set_of_offset(struct udevice *dev, int of_offset)
+{
+	dev->of_offset = of_offset;
+}
+
 /**
  * struct udevice_id - Lists the compatible strings supported by a driver
  * @compatible: Compatible string
@@ -495,6 +505,22 @@ void *dev_map_physmem(struct udevice *dev, unsigned long size);
  * @return addr
  */
 fdt_addr_t dev_get_addr_index(struct udevice *dev, int index);
+
+/**
+ * dev_get_addr_size_index() - Get the indexed reg property of a device
+ *
+ * Returns the address and size specified in the 'reg' property of a device.
+ *
+ * @dev: Pointer to a device
+ * @index: the 'reg' property can hold a list of <addr, size> pairs
+ *	   and @index is used to select which one is required
+ * @size: Pointer to size varible - this function returns the size
+ *        specified in the 'reg' property here
+ *
+ * @return addr
+ */
+fdt_addr_t dev_get_addr_size_index(struct udevice *dev, int index,
+				   fdt_size_t *size);
 
 /**
  * dev_get_addr_name() - Get the reg property of a device, indexed by name

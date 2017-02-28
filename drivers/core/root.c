@@ -41,6 +41,13 @@ struct udevice *dm_root(void)
 	return gd->dm_root;
 }
 
+void dm_fixup_for_gd_move(struct global_data *new_gd)
+{
+	/* The sentinel node has moved, so update things that point to it */
+	new_gd->uclass_root.next->prev = &new_gd->uclass_root;
+	new_gd->uclass_root.prev->next = &new_gd->uclass_root;
+}
+
 fdt_addr_t dm_get_translation_offset(void)
 {
 	struct udevice *root = dm_root();
@@ -220,10 +227,10 @@ int dm_scan_fdt_node(struct udevice *parent, const void *blob, int offset,
 
 int dm_scan_fdt_dev(struct udevice *dev)
 {
-	if (dev->of_offset == -1)
+	if (dev_of_offset(dev) == -1)
 		return 0;
 
-	return dm_scan_fdt_node(dev, gd->fdt_blob, dev->of_offset,
+	return dm_scan_fdt_node(dev, gd->fdt_blob, dev_of_offset(dev),
 				gd->flags & GD_FLG_RELOC ? false : true);
 }
 

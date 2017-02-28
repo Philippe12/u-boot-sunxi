@@ -69,8 +69,7 @@ ARM ALTERA SOCFPGA
 M:	Marek Vasut <marex@denx.de>
 S:	Maintainted
 T:	git git://git.denx.de/u-boot-socfpga.git
-F:	arch/arm/cpu/armv7/socfpga/
-F:	board/altera/socfpga/
+F:	arch/arm/mach-socfpga/
 
 ARM ATMEL AT91
 M:	Andreas Bießmann <andreas@biessmann.org>
@@ -243,7 +242,7 @@ T:	git git://git.denx.de/u-boot-coldfire.git
 F:	arch/m68k/
 
 DFU
-M:	Lukasz Majewski <l.majewski@samsung.com>
+M:	Lukasz Majewski <lukma@denx.de>
 S:	Maintained
 T:	git git://git.denx.de/u-boot-dfu.git
 F:	drivers/dfu/
@@ -367,6 +366,12 @@ S:	Maintained
 T:	git git://git.denx.de/u-boot-ppc4xx.git
 F:	arch/powerpc/cpu/ppc4xx/
 
+POWER
+M:	Jaehoon Chung <jh80.chung@samsung.com>
+S:	Maintained
+T:	git git://git.denx.de/u-boot-pmic.git
+F:	drivers/power/
+
 NETWORK
 M:	Joe Hershberger <joe.hershberger@ni.com>
 S:	Maintained
@@ -393,8 +398,8 @@ T:	git git://git.denx.de/u-boot-nios.git
 F:	arch/nios2/
 
 ONENAND
-M:	Lukasz Majewski <l.majewski@samsung.com>
-S:	Maintained
+#M:	Lukasz Majewski <l.majewski@majess.pl>
+S:	Orphaned (Since 2017-01)
 T:	git git://git.denx.de/u-boot-onenand.git
 F:	drivers/mtd/onenand/
 
@@ -428,6 +433,18 @@ M:	Mateusz Kulikowski <mateusz.kulikowski@gmail.com>
 S:	Maintained
 F:	drivers/spmi/
 F:	include/spmi/
+
+TI SYSTEM SECURITY
+M:	Andrew F. Davis <afd@ti.com>
+S:	Supported
+F:	arch/arm/mach-omap2/omap5/sec_entry_cpu1.S
+F:	arch/arm/mach-omap2/omap5/sec-fxns.c
+F:	arch/arm/mach-omap2/sec-common.c
+F:	arch/arm/mach-omap2/config_secure.mk
+F:	configs/am335x_hs_evm_defconfig
+F:	configs/am43xx_hs_evm_defconfig
+F:	configs/am57xx_hs_evm_defconfig
+F:	configs/dra7xx_hs_evm_defconfig
 
 TQ GROUP
 #M:	Martin Krause <martin.krause@tq-systems.de>

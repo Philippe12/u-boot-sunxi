@@ -9,11 +9,11 @@
 #ifndef __CONFIG_AM43XX_EVM_H
 #define __CONFIG_AM43XX_EVM_H
 
-#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_ARCH_CPU_INIT
 #define CONFIG_MAX_RAM_BANK_SIZE	(1024 << 21)	/* 2GB */
 #define CONFIG_SYS_TIMERBASE		0x48040000	/* Use Timer2 */
 
+#include <environment/ti/dfu.h>
 #include <asm/arch/omap.h>
 
 /* NS16550 Configuration */
@@ -57,9 +57,6 @@
  * we need to call board_early_init_f.  This is taken care of in
  * s_init when we have SPL used.
  */
-#if !defined(CONFIG_SKIP_LOWLEVEL_INIT) && !defined(CONFIG_SPL)
-#define CONFIG_BOARD_EARLY_INIT_F
-#endif
 
 /* Now bring in the rest of the common code. */
 #include <configs/ti_armv7_omap.h>
@@ -122,43 +119,12 @@
 
 #ifndef CONFIG_SPL_BUILD
 /* USB Device Firmware Update support */
-
-#define DFU_ALT_INFO_MMC \
-	"dfu_alt_info_mmc=" \
-	"boot part 0 1;" \
-	"rootfs part 0 2;" \
-	"MLO fat 0 1;" \
-	"spl-os-args fat 0 1;" \
-	"spl-os-image fat 0 1;" \
-	"u-boot.img fat 0 1;" \
-	"uEnv.txt fat 0 1\0"
-
-#define DFU_ALT_INFO_EMMC \
-	"dfu_alt_info_emmc=" \
-	"MLO raw 0x100 0x100 mmcpart 0;" \
-	"u-boot.img raw 0x300 0x1000 mmcpart 0\0"
-
-#define DFU_ALT_INFO_RAM \
-	"dfu_alt_info_ram=" \
-	"kernel ram 0x80200000 0x4000000;" \
-	"fdt ram 0x80f80000 0x80000;" \
-	"ramdisk ram 0x81000000 0x4000000\0"
-
-#define DFU_ALT_INFO_QSPI \
-	"dfu_alt_info_qspi=" \
-	"u-boot.bin raw 0x0 0x080000;" \
-	"u-boot.backup raw 0x080000 0x080000;" \
-	"u-boot-spl-os raw 0x100000 0x010000;" \
-	"u-boot-env raw 0x110000 0x010000;" \
-	"u-boot-env.backup raw 0x120000 0x010000;" \
-	"kernel raw 0x130000 0x800000\0"
-
 #define DFUARGS \
 	"dfu_bufsiz=0x10000\0" \
 	DFU_ALT_INFO_MMC \
 	DFU_ALT_INFO_EMMC \
 	DFU_ALT_INFO_RAM \
-	DFU_ALT_INFO_QSPI
+	DFU_ALT_INFO_QSPI_XIP
 #else
 #define DFUARGS
 #endif
@@ -198,14 +164,11 @@
 #define CONFIG_QSPI_QUAD_SUPPORT
 #define CONFIG_TI_EDMA3
 
-/* Enhance our eMMC support / experience. */
-#define CONFIG_CMD_GPT
-#define CONFIG_EFI_PARTITION
-
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	DEFAULT_LINUX_BOOT_ENV \
 	DEFAULT_MMC_TI_ARGS \
+	DEFAULT_FIT_TI_ARGS \
 	"fdtfile=undefined\0" \
 	"bootpart=0:2\0" \
 	"bootdir=/boot\0" \
@@ -229,20 +192,6 @@
 		"root=${ramroot} " \
 		"rootfstype=${ramrootfstype}\0" \
 	"loadramdisk=load ${devtype} ${devnum} ${rdaddr} ramdisk.gz\0" \
-	"loadimage=load ${devtype} ${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
-	"loadfdt=load ${devtype} ${bootpart} ${fdtaddr} ${bootdir}/${fdtfile}\0" \
-	"mmcboot=mmc dev ${mmcdev}; " \
-		"setenv devnum ${mmcdev}; " \
-		"setenv devtype mmc; " \
-		"if mmc rescan; then " \
-			"echo SD/MMC found on device ${devnum};" \
-			"if run loadimage; then " \
-				"run loadfdt; " \
-				"echo Booting from mmc${mmcdev} ...; " \
-				"run args_mmc; " \
-				"bootz ${loadaddr} - ${fdtaddr}; " \
-			"fi;" \
-		"fi;\0" \
 	"usbboot=" \
 		"setenv devnum ${usbdev}; " \
 		"setenv devtype usb; " \
@@ -283,6 +232,9 @@
 	DFUARGS \
 
 #define CONFIG_BOOTCOMMAND \
+	"if test ${boot_fit} -eq 1; then "	\
+		"run update_to_fit;"	\
+	"fi;"	\
 	"run findfdt; " \
 	"run envboot;" \
 	"run mmcboot;" \

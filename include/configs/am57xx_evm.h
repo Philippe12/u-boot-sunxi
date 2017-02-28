@@ -12,13 +12,13 @@
 #ifndef __CONFIG_AM57XX_EVM_H
 #define __CONFIG_AM57XX_EVM_H
 
-#define CONFIG_AM57XX
+#include <environment/ti/dfu.h>
+
+#define CONFIG_DRA7XX
 
 #ifdef CONFIG_SPL_BUILD
 #define CONFIG_IODELAY_RECALIBRATION
 #endif
-
-#define CONFIG_BOARD_EARLY_INIT_F
 
 #define CONFIG_NR_DRAM_BANKS		2
 
@@ -59,11 +59,15 @@
 	"name=ipu2,size=1M,uuid=${uuid_gpt_ipu2};" \
 	"name=userdata,size=-,uuid=${uuid_gpt_userdata}"
 
+#define DFUARGS \
+	"dfu_bufsiz=0x10000\0" \
+	DFU_ALT_INFO_MMC \
+	DFU_ALT_INFO_EMMC \
+	DFU_ALT_INFO_RAM \
+
 #include <configs/ti_omap5_common.h>
 
 /* Enhance our eMMC support / experience. */
-#define CONFIG_CMD_GPT
-#define CONFIG_EFI_PARTITION
 #define CONFIG_RANDOM_UUID
 #define CONFIG_HSMMC2_8BIT
 
@@ -90,7 +94,6 @@
 #define CONFIG_OMAP_USB3PHY1_HOST
 
 /* SATA */
-#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_SCSI
 #define CONFIG_LIBATA
 #define CONFIG_SCSI_AHCI

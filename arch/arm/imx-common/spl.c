@@ -12,11 +12,9 @@
 #include <asm/arch/imx-regs.h>
 #include <asm/spl.h>
 #include <spl.h>
+#include <asm/imx-common/hab.h>
 
 #if defined(CONFIG_MX6)
-#define MX6_MMC_PORT_MASK	GENMASK(12, 11)
-#define MX6_MMC_PORT_2		BIT(11)
-
 /* determine boot device from SRC_SBMR1 (BOOT_CFG[4:1]) or SRC_GPR9 register */
 u32 spl_boot_device(void)
 {
@@ -29,8 +27,7 @@ u32 spl_boot_device(void)
 	 * Check for BMODE if serial downloader is enabled
 	 * BOOT_MODE - see IMX6DQRM Table 8-1
 	 */
-	if ((((bmode >> 24) & 0x03)  == 0x01) || /* Serial Downloader */
-		(gpr10_boot && (reg == 1)))
+	if (((bmode >> 24) & 0x03) == 0x01) /* Serial Downloader */
 		return BOOT_DEVICE_UART;
 	/* BOOT_CFG1[7:4] - see IMX6DQRM Table 8-8 */
 	switch ((reg & 0x000000FF) >> 4) {
@@ -42,6 +39,9 @@ u32 spl_boot_device(void)
 		else
 			return BOOT_DEVICE_NOR;
 		break;
+	/* Reserved: Used to force Serial Downloader */
+	case 0x1:
+		return BOOT_DEVICE_UART;
 	/* SATA: See 8.5.4, Table 8-20 */
 	case 0x2:
 		return BOOT_DEVICE_SATA;
@@ -58,11 +58,10 @@ u32 spl_boot_device(void)
 	/* SD/eSD: 8.5.3, Table 8-15  */
 	case 0x4:
 	case 0x5:
+		return BOOT_DEVICE_MMC1;
 	/* MMC/eMMC: 8.5.3 */
 	case 0x6:
 	case 0x7:
-		if ((reg & MX6_MMC_PORT_MASK) == MX6_MMC_PORT_2)
-			return BOOT_DEVICE_MMC2;
 		return BOOT_DEVICE_MMC1;
 	/* NAND Flash: 8.5.2 */
 	case 0x8 ... 0xf:
@@ -93,4 +92,28 @@ u32 spl_boot_mode(const u32 boot_device)
 		hang();
 	}
 }
+#endif
+
+#if defined(CONFIG_SECURE_BOOT)
+
+__weak void __noreturn jump_to_image_no_args(struct spl_image_info *spl_image)
+{
+	typedef void __noreturn (*image_entry_noargs_t)(void);
+
+	image_entry_noargs_t image_entry =
+		(image_entry_noargs_t)(unsigned long)spl_image->entry_point;
+
+	debug("image entry point: 0x%lX\n", spl_image->entry_point);
+
+	/* HAB looks for the CSF at the end of the authenticated data therefore,
+	 * we need to subtract the size of the CSF from the actual filesize */
+	if (authenticate_image(spl_image->load_addr,
+			       spl_image->size - CONFIG_CSF_SIZE)) {
+		image_entry();
+	} else {
+		puts("spl: ERROR:  image authentication unsuccessful\n");
+		hang();
+	}
+}
+
 #endif

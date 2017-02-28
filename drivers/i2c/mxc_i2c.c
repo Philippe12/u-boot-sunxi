@@ -750,7 +750,7 @@ static int mxc_i2c_probe(struct udevice *bus)
 {
 	struct mxc_i2c_bus *i2c_bus = dev_get_priv(bus);
 	const void *fdt = gd->fdt_blob;
-	int node = bus->of_offset;
+	int node = dev_of_offset(bus);
 	fdt_addr_t addr;
 	int ret, ret2;
 
@@ -775,7 +775,7 @@ static int mxc_i2c_probe(struct udevice *bus)
 	 */
 	ret = fdt_stringlist_search(fdt, node, "pinctrl-names", "gpio");
 	if (ret < 0) {
-		dev_info(dev, "i2c bus %d at %lu, no gpio pinctrl state.\n", bus->seq, i2c_bus->base);
+		debug("i2c bus %d at 0x%2lx, no gpio pinctrl state.\n", bus->seq, i2c_bus->base);
 	} else {
 		ret = gpio_request_by_name_nodev(fdt, node, "scl-gpios",
 						 0, &i2c_bus->scl_gpio,

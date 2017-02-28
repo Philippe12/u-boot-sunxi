@@ -19,6 +19,7 @@
 #define CONFIG_SYS_FSL_CH3_CLK_GRPA_ADDR	(CONFIG_SYS_IMMR + 0x00300000)
 #define CONFIG_SYS_FSL_CH3_CLK_GRPB_ADDR	(CONFIG_SYS_IMMR + 0x00310000)
 #define CONFIG_SYS_FSL_CH3_CLK_CTRL_ADDR	(CONFIG_SYS_IMMR + 0x00370000)
+#define SYS_FSL_QSPI_ADDR			(CONFIG_SYS_IMMR + 0x010c0000)
 #define CONFIG_SYS_FSL_ESDHC_ADDR		(CONFIG_SYS_IMMR + 0x01140000)
 #define CONFIG_SYS_IFC_ADDR			(CONFIG_SYS_IMMR + 0x01240000)
 #define CONFIG_SYS_NS16550_COM1			(CONFIG_SYS_IMMR + 0x011C0500)
@@ -106,14 +107,6 @@
 #define CONFIG_SYS_PCIE2_PHYS_ADDR		0x1200000000ULL
 #define CONFIG_SYS_PCIE3_PHYS_ADDR		0x1400000000ULL
 #define CONFIG_SYS_PCIE4_PHYS_ADDR		0x1600000000ULL
-/* LUT registers */
-#define PCIE_LUT_BASE				0x80000
-#define PCIE_LUT_LCTRL0				0x7F8
-#define PCIE_LUT_DBG				0x7FC
-#define PCIE_LUT_UDR(n)         (0x800 + (n) * 8)
-#define PCIE_LUT_LDR(n)         (0x804 + (n) * 8)
-#define PCIE_LUT_ENABLE         (1 << 31)
-#define PCIE_LUT_ENTRY_COUNT    32
 
 /* Device Configuration */
 #define DCFG_BASE		0x01e00000
@@ -158,6 +151,7 @@
 #ifndef __ASSEMBLY__
 struct sys_info {
 	unsigned long freq_processor[CONFIG_MAX_CPUS];
+	/* frequency of platform PLL */
 	unsigned long freq_systembus;
 	unsigned long freq_ddrbus;
 #ifdef CONFIG_SYS_FSL_HAS_DP_DDR

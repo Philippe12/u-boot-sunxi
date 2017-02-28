@@ -9,13 +9,11 @@
 #ifndef __AP_SH4A_4A_H
 #define __AP_SH4A_4A_H
 
-#undef DEBUG
 #define CONFIG_CPU_SH7734	1
 #define CONFIG_AP_SH4A_4A	1
 #define CONFIG_400MHZ_MODE	1
 /* #define CONFIG_533MHZ_MODE	1 */
 
-#define CONFIG_BOARD_LATE_INIT
 #define CONFIG_SYS_TEXT_BASE 0x8BFC0000
 
 #define CONFIG_CMD_SDRAM
@@ -24,6 +22,7 @@
 #define CONFIG_BAUDRATE		115200
 #define CONFIG_BOOTARGS		"console=ttySC4,115200"
 
+#define CONFIG_DISPLAY_BOARDINFO
 #undef  CONFIG_SHOW_BOOT_PROGRESS
 
 /* Ether */

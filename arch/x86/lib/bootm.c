@@ -26,6 +26,11 @@ DECLARE_GLOBAL_DATA_PTR;
 
 #define COMMAND_LINE_OFFSET 0x9000
 
+int arch_fixup_fdt(void *blob)
+{
+	return 0;
+}
+
 __weak void board_quiesce_devices(void)
 {
 }
@@ -150,7 +155,14 @@ int boot_linux_kernel(ulong setup_base, ulong load_address, bool image_64bit)
 			puts("Cannot boot 64-bit kernel on 32-bit machine\n");
 			return -EFAULT;
 		}
+		/* At present 64-bit U-Boot does not support booting a
+		 * kernel.
+		 * TODO(sjg@chromium.org): Support booting both 32-bit and
+		 * 64-bit kernels from 64-bit U-Boot.
+		 */
+#if !CONFIG_IS_ENABLED(X86_64)
 		return cpu_jump_to_64bit(setup_base, load_address);
+#endif
 	} else {
 		/*
 		* Set %ebx, %ebp, and %edi to 0, %esi to point to the

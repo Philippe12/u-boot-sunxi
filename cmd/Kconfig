@@ -138,6 +138,18 @@ config CMD_BDI
 	help
 	  Print board info
 
+config CMD_CONFIG
+	bool "config"
+	select BUILD_BIN2C
+	default SANDBOX
+	help
+	  Print ".config" contents.
+
+	  If this option is enabled, the ".config" file contents are embedded
+	  in the U-Boot image and can be printed on the console by the "config"
+	  command.  This provides information of which options are enabled on
+	  the running U-Boot.
+
 config CMD_CONSOLE
 	bool "coninfo"
 	default y
@@ -154,6 +166,7 @@ config CMD_CPU
 
 config CMD_LICENSE
 	bool "license"
+	select BUILD_BIN2C
 	help
 	  Print GPL license text
 
@@ -214,6 +227,12 @@ config CMD_BOOTEFI_HELLO
 	  it can be used with the 'bootefi hello' command. This is useful
 	  for testing that EFI is working at a basic level, and for bringing
 	  up EFI support on a new architecture.
+
+config CMD_BOOTMENU
+	bool "bootmenu"
+	select MENU
+	help
+	  Add an ANSI terminal boot menu command.
 
 config CMD_ELF
 	bool "bootelf, bootvx"
@@ -315,7 +334,7 @@ config CMD_MEMORY
 	bool "md, mm, nm, mw, cp, cmp, base, loop"
 	default y
 	help
-	  Memeory commands.
+	  Memory commands.
 	    md - memory display
 	    mm - memory modify (auto-incrementing address)
 	    nm - memory modify (constant address)
@@ -323,7 +342,7 @@ config CMD_MEMORY
 	    cp - memory copy
 	    cmp - memory compare
 	    base - print or set address offset
-	    loop - initinite loop on address range
+	    loop - initialize loop on address range
 
 config CMD_CRC32
 	bool "crc32"
@@ -351,6 +370,16 @@ config CMD_MEMINFO
 	bool "meminfo"
 	help
 	  Display memory information.
+
+config CMD_UNZIP
+	bool "unzip"
+	help
+	  Uncompress a zip-compressed memory region.
+
+config CMD_ZIP
+	bool "zip"
+	help
+	  Compress a memory region with zlib deflate method.
 
 endmenu
 
@@ -400,6 +429,14 @@ config CMD_FLASH
 	    erase - FLASH memory
 	    protect - enable or disable FLASH write protection
 
+config CMD_GPT
+	bool "GPT (GUID Partition Table) command"
+	select PARTITION_UUIDS
+	select EFI_PARTITION
+	help
+	  Enable the 'gpt' command to ready and write GPT style partition
+	  tables.
+
 config CMD_ARMFLASH
 	#depends on FLASH_CFI_DRIVER
 	bool "armflash"
@@ -415,6 +452,13 @@ config CMD_NAND
 	bool "nand"
 	help
 	  NAND support.
+
+config CMD_PART
+	bool "part"
+	select PARTITION_UUIDS
+	help
+	  Read and display information about the partition table on
+	  various media.
 
 config CMD_SF
 	bool "sf"
@@ -530,6 +574,12 @@ config CMD_DHCP
 	help
 	  Boot image via network using DHCP/TFTP protocol
 
+config CMD_PXE
+	bool "pxe"
+	select MENU
+	help
+	  Boot image via network using PXE protocol
+
 config CMD_NFS
 	bool "nfs"
 	default y
@@ -583,6 +633,15 @@ config SYS_AMBAPP_PRINT_ON_STARTUP
 	default n
 	help
 	  Show AMBA Plug-n-Play information on startup.
+
+config CMD_BKOPS_ENABLE
+	bool "mmc bkops enable"
+	depends on CMD_MMC
+	default n
+	help
+	  Enable command for setting manual background operations handshake
+	  on a eMMC device. The feature is optionally available on eMMC devices
+	  conforming to standard >= 4.41.
 
 config CMD_BLOCK_CACHE
 	bool "blkcache - control and stats for block cache"
@@ -644,6 +703,9 @@ config CMD_QFW
 	  This provides access to the QEMU firmware interface.  The main
 	  feature is to allow easy loading of files passed to qemu-system
 	  via -kernel / -initrd
+
+source "cmd/mvebu/Kconfig"
+
 endmenu
 
 config CMD_BOOTSTAGE

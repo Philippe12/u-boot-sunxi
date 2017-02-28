@@ -61,10 +61,6 @@
 #define CONFIG_PCI_IO_PHYS	CONFIG_PCI_IO_BUS
 #define CONFIG_PCI_IO_SIZE	0x01000000
 
-/*
- *  Partitions
- */
-#define CONFIG_DOS_PARTITION
 #define CONFIG_BZIP2
 
 /*
@@ -214,12 +210,6 @@
 	""
 
 #define CONFIG_BOOTCOMMAND	"run mtcb_start"
-
-/*
- * SPI configuration
- */
-#define CONFIG_HARD_SPI		1
-#define CONFIG_MPC52XX_SPI	1
 
 /*
  * I2C configuration

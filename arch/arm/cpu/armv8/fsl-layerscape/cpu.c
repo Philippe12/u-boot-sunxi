@@ -26,6 +26,9 @@
 #ifdef CONFIG_ARMV8_SEC_FIRMWARE_SUPPORT
 #include <asm/armv8/sec_firmware.h>
 #endif
+#ifdef CONFIG_SYS_FSL_DDR
+#include <fsl_ddr.h>
+#endif
 
 DECLARE_GLOBAL_DATA_PTR;
 
@@ -342,8 +345,9 @@ int print_cpuinfo(void)
 		       (type == TY_ITYP_VER_A72 ? "A72" : "   "))),
 		       strmhz(buf, sysinfo.freq_processor[core]));
 	}
+	/* Display platform clock as Bus frequency. */
 	printf("\n       Bus:      %-4s MHz  ",
-	       strmhz(buf, sysinfo.freq_systembus));
+	       strmhz(buf, sysinfo.freq_systembus / CONFIG_SYS_FSL_PCLK_DIV));
 	printf("DDR:      %-4s MT/s", strmhz(buf, sysinfo.freq_ddrbus));
 #ifdef CONFIG_SYS_DPAA_FMAN
 	printf("  FMAN:     %-4s MHz", strmhz(buf, sysinfo.freq_fman[0]));
@@ -403,9 +407,12 @@ int arch_early_init_r(void)
 #ifdef CONFIG_SYS_FSL_ERRATUM_A009635
 	erratum_a009635();
 #endif
-
+#if defined(CONFIG_SYS_FSL_ERRATUM_A009942) && defined(CONFIG_SYS_FSL_DDR)
+	erratum_a009942_check_cpo();
+#endif
 #ifdef CONFIG_MP
-#if defined(CONFIG_ARMV8_SEC_FIRMWARE_SUPPORT) && defined(CONFIG_ARMV8_PSCI)
+#if defined(CONFIG_ARMV8_SEC_FIRMWARE_SUPPORT) && \
+	defined(CONFIG_SEC_FIRMWARE_ARMV8_PSCI)
 	/* Check the psci version to determine if the psci is supported */
 	psci_ver = sec_firmware_support_psci_version();
 #endif

@@ -273,29 +273,6 @@ mpl_prg(uchar *src, ulong size)
 		return (1);
 	}
 #endif /* defined(CONFIG_PATI) */
-
-#elif defined(CONFIG_VCMA9)
-	start = 0;
-
-	/* search end sector */
-	for (i = 0; i < info->sector_count; i++)
-		if (size < info->start[i])
-		    break;
-
-	flash_protect(FLAG_PROTECT_CLEAR,
-		      start,
-		      size,
-		      info);
-
-	/* now erase flash */
-	printf("Erasing at %lx (sector %d) (start %lx)\n",
-				start,0,info->start[0]);
-	if ((rc = flash_erase (info, 0, i)) != 0) {
-		puts("ERROR ");
-		flash_perror(rc);
-		return (1);
-	}
-
 #endif
 	printf("flash erased, programming from 0x%lx 0x%lx Bytes\n",
 		(ulong)src, size);
@@ -644,15 +621,6 @@ int do_mplcommon(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 #endif
 	return cmd_usage(cmdtp);
 }
-
-
-#if defined(CONFIG_CMD_DOC)
-void doc_init (void)
-{
-  doc_probe(MULTI_PURPOSE_SOCKET_ADDR);
-}
-#endif
-
 
 #ifdef CONFIG_VIDEO
 /******************************************************

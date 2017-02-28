@@ -93,10 +93,6 @@
 #define CONFIG_ENV_OVERWRITE
 #define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE { 4800, 9600, 19200, 38400, 57600, 115200 }
-#define CONFIG_MMC
-#define CONFIG_GENERIC_MMC
-#define CONFIG_OMAP_HSMMC
-#define CONFIG_DOS_PARTITION
 
 /* USB */
 #define CONFIG_USB_MUSB_UDC
@@ -111,14 +107,11 @@
 #define CONFIG_USBD_MANUFACTURER	"Nokia"
 #define CONFIG_USBD_PRODUCT_NAME	"N900"
 
-#define CONFIG_SYS_NO_FLASH
-
 /* commands to include */
 
 #define CONFIG_CMDLINE_EDITING		/* add command line history */
 #define CONFIG_AUTO_COMPLETE		/* add autocompletion support */
 
-#define CONFIG_CMD_BOOTMENU		/* ANSI terminal Boot Menu */
 #define CONFIG_CMD_CLEAR		/* ANSI terminal clear screen command */
 
 #ifdef ONENAND_SUPPORT
@@ -364,7 +357,6 @@ int rx51_kp_getc(struct stdio_dev *sdev);
 	"run attachboot;" \
 	"echo"
 
-#define CONFIG_MENU
 #define CONFIG_MENU_SHOW
 
 /*

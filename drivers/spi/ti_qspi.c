@@ -383,7 +383,7 @@ struct spi_slave *spi_setup_slave(unsigned int bus, unsigned int cs,
 
 	priv->base = (struct ti_qspi_regs *)QSPI_BASE;
 	priv->mode = mode;
-#if defined(CONFIG_DRA7XX) || defined(CONFIG_AM57XX)
+#if defined(CONFIG_DRA7XX)
 	priv->ctrl_mod_mmap = (void *)CORE_CTRL_IO;
 	priv->slave.memory_map = (void *)MMAP_START_ADDR_DRA;
 	priv->fclk = QSPI_DRA7XX_FCLK;
@@ -553,7 +553,7 @@ static int ti_qspi_ofdata_to_platdata(struct udevice *bus)
 {
 	struct ti_qspi_priv *priv = dev_get_priv(bus);
 	const void *blob = gd->fdt_blob;
-	int node = bus->of_offset;
+	int node = dev_of_offset(bus);
 	fdt_addr_t addr;
 	void *mmap;
 

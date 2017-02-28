@@ -9,7 +9,7 @@ menuconfig PCI
 if PCI
 
 config DM_PCI
-	bool "Enable driver mode for PCI"
+	bool "Enable driver model for PCI"
 	depends on DM
 	help
 	  Use driver model for PCI. Driver model is the new method for
@@ -32,6 +32,16 @@ config PCI_PNP
 	default y
 	help
 	  Enable PCI memory and I/O space resource allocation and assignment.
+
+config PCIE_DW_MVEBU
+	bool "Enable Armada-8K PCIe driver (DesignWare core)"
+	default n
+	depends on DM_PCI
+	depends on ARMADA_8K
+	help
+	  Say Y here if you want to enable PCIe controller support on
+	  Armada-8K SoCs. The PCIe controller on Armada-8K is based on
+	  DesignWare hardware.
 
 config PCI_SANDBOX
 	bool "Sandbox PCI support"
@@ -60,5 +70,13 @@ config PCI_XILINX
 	help
 	  Enable support for the Xilinx AXI bridge for PCI express, an IP block
 	  which can be used on some generations of Xilinx FPGAs.
+
+config PCIE_LAYERSCAPE
+	bool "Layerscape PCIe support"
+	depends on DM_PCI
+	help
+	  Support Layerscape PCIe. The Layerscape SoC may have one or several
+	  PCIe controllers. The PCIe may works in RC or EP mode according to
+	  RCW[HOST_AGT_PEX] setting.
 
 endif

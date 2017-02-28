@@ -36,7 +36,7 @@ static int mmc_load_legacy(struct spl_image_info *spl_image, struct mmc *mmc,
 	/* Read the header too to avoid extra memcpy */
 	count = blk_dread(mmc_get_blk_desc(mmc), sector, image_size_sectors,
 			  (void *)(ulong)spl_image->load_addr);
-	debug("read %x sectors to %x\n", image_size_sectors,
+	debug("read %x sectors to %lx\n", image_size_sectors,
 	      spl_image->load_addr);
 	if (count != image_size_sectors)
 		return -EIO;
@@ -150,12 +150,27 @@ static int spl_mmc_find_device(struct mmc **mmcp, u32 boot_device)
 	return 0;
 }
 
-#ifdef CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_PARTITION
+#ifdef CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_PARTITION
 static int mmc_load_image_raw_partition(struct spl_image_info *spl_image,
 					struct mmc *mmc, int partition)
 {
 	disk_partition_t info;
 	int err;
+
+#ifdef CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_PARTITION_TYPE
+	int type_part;
+	/* Only support MBR so DOS_ENTRY_NUMBERS */
+	for (type_part = 1; type_part <= DOS_ENTRY_NUMBERS; type_part++) {
+		err = part_get_info(mmc_get_blk_desc(mmc), type_part, &info);
+		if (err)
+			continue;
+		if (info.sys_ind == 
+			CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_PARTITION_TYPE) {
+			partition = type_part;
+			break;
+		}
+	}
+#endif
 
 	err = part_get_info(mmc_get_blk_desc(mmc), partition, &info);
 	if (err) {
@@ -171,13 +186,6 @@ static int mmc_load_image_raw_partition(struct spl_image_info *spl_image,
 #else
 	return mmc_load_image_raw_sector(spl_image, mmc, info.start);
 #endif
-}
-#else
-#define CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_PARTITION -1
-static int mmc_load_image_raw_partition(struct spl_image_info *spl_image,
-					struct mmc *mmc, int partition)
-{
-	return -ENOSYS;
 }
 #endif
 
@@ -245,13 +253,13 @@ static int spl_mmc_do_fs_boot(struct spl_image_info *spl_image, struct mmc *mmc)
 #endif
 #ifdef CONFIG_SPL_EXT_SUPPORT
 	if (!spl_start_uboot()) {
-		err = spl_load_image_ext_os(spl_image, &mmc->block_dev,
+		err = spl_load_image_ext_os(spl_image, mmc_get_blk_desc(mmc),
 			CONFIG_SYS_MMCSD_FS_BOOT_PARTITION);
 		if (!err)
 			return err;
 	}
 #ifdef CONFIG_SPL_FS_LOAD_PAYLOAD_NAME
-	err = spl_load_image_ext(spl_image, &mmc->block_dev,
+	err = spl_load_image_ext(spl_image, mmc_get_blk_desc(mmc),
 				 CONFIG_SYS_MMCSD_FS_BOOT_PARTITION,
 				 CONFIG_SPL_FS_LOAD_PAYLOAD_NAME);
 	if (!err)
@@ -272,8 +280,8 @@ static int spl_mmc_do_fs_boot(struct spl_image_info *spl_image, struct mmc *mmc)
 }
 #endif
 
-static int spl_mmc_load_image(struct spl_image_info *spl_image,
-			      struct spl_boot_device *bootdev)
+int spl_mmc_load_image(struct spl_image_info *spl_image,
+		       struct spl_boot_device *bootdev)
 {
 	struct mmc *mmc = NULL;
 	u32 boot_mode;
@@ -306,7 +314,11 @@ static int spl_mmc_load_image(struct spl_image_info *spl_image,
 			if (part == 7)
 				part = 0;
 
-			err = blk_dselect_hwpart(mmc_get_blk_desc(mmc), part);
+			if (CONFIG_IS_ENABLED(MMC_TINY))
+				err = mmc_switch_part(mmc, part);
+			else
+				err = blk_dselect_hwpart(mmc_get_blk_desc(mmc), part);
+
 			if (err) {
 #ifdef CONFIG_SPL_LIBCOMMON_SUPPORT
 				puts("spl: mmc partition switch failed\n");
@@ -322,11 +334,12 @@ static int spl_mmc_load_image(struct spl_image_info *spl_image,
 			if (!err)
 				return err;
 		}
-
+#ifdef CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_PARTITION
 		err = mmc_load_image_raw_partition(spl_image, mmc,
 			CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_PARTITION);
 		if (!err)
 			return err;
+#endif
 #ifdef CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_USE_SECTOR
 		err = mmc_load_image_raw_sector(spl_image, mmc,
 			CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR);
@@ -351,6 +364,6 @@ static int spl_mmc_load_image(struct spl_image_info *spl_image,
 	return err;
 }
 
-SPL_LOAD_IMAGE_METHOD(0, BOOT_DEVICE_MMC1, spl_mmc_load_image);
-SPL_LOAD_IMAGE_METHOD(0, BOOT_DEVICE_MMC2, spl_mmc_load_image);
-SPL_LOAD_IMAGE_METHOD(0, BOOT_DEVICE_MMC2_2, spl_mmc_load_image);
+SPL_LOAD_IMAGE_METHOD("MMC1", 0, BOOT_DEVICE_MMC1, spl_mmc_load_image);
+SPL_LOAD_IMAGE_METHOD("MMC2", 0, BOOT_DEVICE_MMC2, spl_mmc_load_image);
+SPL_LOAD_IMAGE_METHOD("MMC2_2", 0, BOOT_DEVICE_MMC2_2, spl_mmc_load_image);
