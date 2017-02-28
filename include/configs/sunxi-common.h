@@ -553,7 +553,7 @@ extern int soft_i2c_gpio_scl;
 #define BOOTENV_DEV_BOOT_ESA(devtypeu, devtypel, instance) \
 	"bootcmd_boot_esa=" \
 		"echo '(dfu environnement-sa boot)'; " \
-		"setenv dfu_alt_info 'system part 0 3'; " \
+		"setenv dfu_alt_info 'boot part 0 1;system part 0 3'; " \
 		"dfu 0 mmc 0; " \
 		"dfu 0 mmc 1\0"
 						
