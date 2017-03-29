@@ -12,7 +12,6 @@
 #include "mx6_common.h"
 
 /* General configuration */
-#define CONFIG_SYS_THUMB_BUILD
 
 #define CONFIG_MACH_TYPE		3980
 
@@ -42,7 +41,6 @@
 /* Serial console */
 #define CONFIG_MXC_UART
 #define CONFIG_MXC_UART_BASE		UART1_BASE /* select UART1/UART2 */
-#define CONFIG_BAUDRATE			115200
 
 #define CONFIG_CONS_INDEX		1
 

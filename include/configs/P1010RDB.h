@@ -130,7 +130,6 @@
 #endif
 
 /* High Level Configuration Options */
-#define CONFIG_FSL_CAAM			/* Enable SEC/CAAM */
 #define CONFIG_SYS_HAS_SERDES		/* common SERDES init code */
 
 #if defined(CONFIG_PCI)
@@ -793,8 +792,6 @@ extern unsigned long get_sdram_size(void);
 #define CONFIG_LOADADDR		1000000
 
 #undef  CONFIG_BOOTARGS		/* the boot command will set bootargs */
-
-#define CONFIG_BAUDRATE		115200
 
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
 	"hwconfig=" __stringify(CONFIG_DEF_HWCONFIG)  "\0"	\

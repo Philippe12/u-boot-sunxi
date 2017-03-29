@@ -44,7 +44,6 @@
 #define CONFIG_CMD_CBFS
 #define CONFIG_CMD_CRAMFS
 #define CONFIG_HOST_MAX_DEVICES 4
-#define CONFIG_CMD_MD5SUM
 
 /*
  * Size of malloc() pool, before and after relocation
@@ -87,7 +86,6 @@
 #define CONFIG_SYS_MONITOR_BASE	0
 #define CONFIG_NR_DRAM_BANKS		1
 
-#define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600,\
 					115200}
 

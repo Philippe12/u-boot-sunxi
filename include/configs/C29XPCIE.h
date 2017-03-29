@@ -68,7 +68,6 @@
 #endif
 
 /* High Level Configuration Options */
-#define CONFIG_FSL_CAAM			/* Enable SEC/CAAM */
 #define CONFIG_SYS_HAS_SERDES		/* common SERDES init code */
 
 #ifdef CONFIG_PCI
@@ -485,9 +484,6 @@
 
 /* default location for tftp and bootm */
 #define CONFIG_LOADADDR		1000000
-
-
-#define CONFIG_BAUDRATE		115200
 
 #define CONFIG_DEF_HWCONFIG	fsl_ddr:ecc=on
 

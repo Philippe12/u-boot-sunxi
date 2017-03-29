@@ -46,7 +46,6 @@
 #endif
 
 /* High Level Configuration Options */
-#define CONFIG_FSL_CAAM			/* Enable SEC/CAAM */
 
 #define CONFIG_TSEC_ENET
 #define CONFIG_ENV_OVERWRITE
@@ -365,8 +364,6 @@ extern unsigned long get_sdram_size(void);
 #define CONFIG_ROOTPATH		"/opt/nfsroot"
 #define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	"u-boot.bin" /* U-Boot image on TFTP server */
-
-#define CONFIG_BAUDRATE		115200
 
 #define	CONFIG_EXTRA_ENV_SETTINGS				\
 	"netdev=eth0\0"						\

@@ -28,8 +28,6 @@
 
 #define CONFIG_DEEP_SLEEP
 
-#define CONFIG_FSL_CAAM			/* Enable SEC/CAAM */
-
 #ifdef CONFIG_RAMBOOT_PBL
 #define CONFIG_SYS_FSL_PBL_PBI board/freescale/t102xqds/t1024_pbi.cfg
 #define CONFIG_SPL_FLUSH_IMAGE
@@ -828,7 +826,6 @@ unsigned long get_board_ddr_clk(void);
 #define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	"u-boot.bin" /* U-Boot image on TFTP server */
 #define CONFIG_LOADADDR		1000000 /* default location for tftp, bootm */
-#define CONFIG_BAUDRATE		115200
 #define __USB_PHY_TYPE		utmi
 
 #define	CONFIG_EXTRA_ENV_SETTINGS				\

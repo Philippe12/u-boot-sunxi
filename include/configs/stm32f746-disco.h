@@ -8,8 +8,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define CONFIG_SYS_THUMB_BUILD
-
 #define CONFIG_SYS_FLASH_BASE		0x08000000
 #define CONFIG_SYS_INIT_SP_ADDR		0x20050000
 #define CONFIG_SYS_TEXT_BASE		0x08000000
@@ -62,7 +60,6 @@
 #define CONFIG_SYS_MALLOC_LEN		(1 * 1024 * 1024)
 #define CONFIG_STACKSIZE		(256 * 1024)
 
-#define CONFIG_BAUDRATE			115200
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 earlyprintk consoleblank=0 ignore_loglevel"
 #define CONFIG_BOOTCOMMAND						\

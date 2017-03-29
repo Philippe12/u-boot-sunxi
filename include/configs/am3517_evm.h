@@ -19,11 +19,6 @@
 
 #define CONFIG_NR_DRAM_BANKS	2	/* CS1 may or may not be populated */
 
-/* Common ARM Erratas */
-#define CONFIG_ARM_ERRATA_454179
-#define CONFIG_ARM_ERRATA_430973
-#define CONFIG_ARM_ERRATA_621766
-
 #define CONFIG_EMIF4	/* The chip has EMIF4 controller */
 
 /*
@@ -70,7 +65,6 @@
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
-#define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600,\
 					115200}
 

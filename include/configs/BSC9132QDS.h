@@ -68,7 +68,6 @@
 #endif
 
 /* High Level Configuration Options */
-#define CONFIG_FSL_CAAM			/* Enable SEC/CAAM */
 #define CONFIG_SYS_HAS_SERDES		/* common SERDES init code */
 
 #if defined(CONFIG_PCI)
@@ -590,8 +589,6 @@ combinations. this should be removed later
 #define CONFIG_ROOTPATH		"/opt/nfsroot"
 #define CONFIG_BOOTFILE		"uImage"
 #define CONFIG_UBOOTPATH	"u-boot.bin"
-
-#define CONFIG_BAUDRATE		115200
 
 #ifdef CONFIG_SDCARD
 #define CONFIG_DEF_HWCONFIG	"hwconfig=usb1:dr_mode=host,phy_type=ulpi\0"

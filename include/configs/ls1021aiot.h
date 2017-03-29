@@ -118,8 +118,6 @@
 #define CONFIG_SYS_DDR_SDRAM_BASE	0x80000000UL
 #define CONFIG_SYS_SDRAM_BASE		CONFIG_SYS_DDR_SDRAM_BASE
 
-#define CONFIG_FSL_CAAM			/* Enable CAAM */
-
 /*
  * Serial Port
  */
@@ -127,7 +125,6 @@
 #define CONFIG_SYS_NS16550_SERIAL
 #define CONFIG_SYS_NS16550_REG_SIZE	1
 #define CONFIG_SYS_NS16550_CLK		get_serial_clock()
-#define CONFIG_BAUDRATE			115200
 
 /*
  * I2C

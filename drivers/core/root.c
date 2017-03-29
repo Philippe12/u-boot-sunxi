@@ -44,8 +44,10 @@ struct udevice *dm_root(void)
 void dm_fixup_for_gd_move(struct global_data *new_gd)
 {
 	/* The sentinel node has moved, so update things that point to it */
-	new_gd->uclass_root.next->prev = &new_gd->uclass_root;
-	new_gd->uclass_root.prev->next = &new_gd->uclass_root;
+	if (gd->dm_root) {
+		new_gd->uclass_root.next->prev = &new_gd->uclass_root;
+		new_gd->uclass_root.prev->next = &new_gd->uclass_root;
+	}
 }
 
 fdt_addr_t dm_get_translation_offset(void)
@@ -205,7 +207,7 @@ int dm_scan_fdt_node(struct udevice *parent, const void *blob, int offset,
 	     offset > 0;
 	     offset = fdt_next_subnode(blob, offset)) {
 		if (pre_reloc_only &&
-		    !fdt_getprop(blob, offset, "u-boot,dm-pre-reloc", NULL))
+		    !dm_fdt_pre_reloc(blob, offset))
 			continue;
 		if (!fdtdec_get_is_enabled(blob, offset)) {
 			dm_dbg("   - ignoring disabled device\n");

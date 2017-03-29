@@ -175,7 +175,6 @@
  * console baudrate of 115200 and use the default baud rate table.
  */
 #define CONFIG_SYS_MALLOC_LEN		SZ_32M
-#define CONFIG_BAUDRATE			115200
 #define CONFIG_ENV_VARS_UBOOT_CONFIG	/* Strongly encouraged */
 #define CONFIG_ENV_OVERWRITE		/* Overwrite ethaddr / serial# */
 
@@ -277,8 +276,6 @@
 /* spl export command */
 #define CONFIG_CMD_SPL
 #endif
-
-#define CONFIG_SYS_THUMB_BUILD
 
 /* General parts of the framework, required. */
 #define CONFIG_SPL_BOARD_INIT

@@ -188,7 +188,6 @@
 #define CONFIG_STANDALONE_LOAD_ADDR	CONFIG_SYS_LOAD_ADDR
 
 /* baudrate */
-#define CONFIG_BAUDRATE			115200
 
 /* The stack sizes are set up in start.S using the settings below */
 #define CONFIG_STACKSIZE		(256 << 10)	/* 256 KiB */
@@ -319,7 +318,7 @@ extern int soft_i2c_gpio_scl;
 /* stop x86 thinking in cfbconsole from trying to init a pc keyboard */
 
 #endif /* CONFIG_VIDEO */
-		
+
 /* Ethernet support */
 #ifdef CONFIG_SUNXI_EMAC
 #define CONFIG_PHY_ADDR		1
@@ -333,7 +332,7 @@ extern int soft_i2c_gpio_scl;
 #define CONFIG_MII			/* MII PHY management		*/
 #define CONFIG_PHY_REALTEK
 #endif
-		
+
 #ifdef CONFIG_USB_EHCI_HCD
 #define CONFIG_USB_OHCI_NEW
 #define CONFIG_USB_OHCI_SUNXI
@@ -615,7 +614,7 @@ extern int soft_i2c_gpio_scl;
 	"fdtfile=" CONFIG_DEFAULT_DEVICE_TREE ".dtb\0" \
 	"console=ttyS0,115200\0" \
 	BOOTCMD_SUNXI_COMPAT \
-	BOOTENV 
+	BOOTENV
 
 #else /* ifndef CONFIG_SPL_BUILD */
 #define CONFIG_EXTRA_ENV_SETTINGS

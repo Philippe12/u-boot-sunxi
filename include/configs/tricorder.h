@@ -17,12 +17,7 @@
 #define __CONFIG_H
 
 /* High Level Configuration Options */
-#define CONFIG_SYS_THUMB_BUILD
 #define CONFIG_OMAP			/* in a TI OMAP core */
-/* Common ARM Erratas */
-#define CONFIG_ARM_ERRATA_454179
-#define CONFIG_ARM_ERRATA_430973
-#define CONFIG_ARM_ERRATA_621766
 
 #define CONFIG_MACH_TYPE		MACH_TYPE_TRICORDER
 /*
@@ -71,7 +66,6 @@
 #define CONFIG_CONS_INDEX		3
 #define CONFIG_SYS_NS16550_COM3		OMAP34XX_UART3
 #define CONFIG_SERIAL3			3
-#define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600,\
 					115200}
 

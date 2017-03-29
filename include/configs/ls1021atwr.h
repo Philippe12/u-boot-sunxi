@@ -133,9 +133,9 @@
  * size increases then increase this size in case of secure boot as
  * it uses raw u-boot image instead of fit image.
  */
-#define CONFIG_SYS_MONITOR_LEN		(0x80000 + CONFIG_U_BOOT_HDR_SIZE)
+#define CONFIG_SYS_MONITOR_LEN		(0x100000 + CONFIG_U_BOOT_HDR_SIZE)
 #else
-#define CONFIG_SYS_MONITOR_LEN		0x80000
+#define CONFIG_SYS_MONITOR_LEN		0x100000
 #endif /* ifdef CONFIG_U_BOOT_HDR_SIZE */
 #endif
 
@@ -153,8 +153,6 @@
 
 #define CONFIG_SYS_DDR_SDRAM_BASE      0x80000000UL
 #define CONFIG_SYS_SDRAM_BASE          CONFIG_SYS_DDR_SDRAM_BASE
-
-#define CONFIG_FSL_CAAM			/* Enable CAAM */
 
 #if !defined(CONFIG_SD_BOOT) && !defined(CONFIG_NAND_BOOT) && \
 	!defined(CONFIG_QSPI_BOOT)
@@ -265,8 +263,6 @@
 #endif
 #define CONFIG_SYS_NS16550_CLK		get_serial_clock()
 #endif
-
-#define CONFIG_BAUDRATE			115200
 
 /*
  * I2C

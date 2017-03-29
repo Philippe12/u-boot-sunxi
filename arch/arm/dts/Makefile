@@ -38,6 +38,7 @@ dtb-$(CONFIG_ARCH_ROCKCHIP) += \
 	rk3288-fennec.dtb \
 	rk3288-tinker.dtb \
 	rk3288-popmetal.dtb \
+	rk3328-evb.dtb \
 	rk3399-evb.dtb
 dtb-$(CONFIG_ARCH_MESON) += \
 	meson-gxbb-odroidc2.dtb
@@ -70,16 +71,19 @@ dtb-$(CONFIG_TEGRA) += tegra20-harmony.dtb \
 
 dtb-$(CONFIG_ARCH_MVEBU) +=			\
 	armada-3720-db.dtb			\
+	armada-3720-espressobin.dtb		\
 	armada-375-db.dtb			\
 	armada-388-clearfog.dtb			\
 	armada-388-gp.dtb			\
 	armada-385-amc.dtb			\
 	armada-7040-db.dtb			\
 	armada-8040-db.dtb			\
+	armada-8040-mcbin.dtb			\
 	armada-xp-gp.dtb			\
 	armada-xp-maxbcm.dtb			\
 	armada-xp-synology-ds414.dtb		\
-	armada-xp-theadorable.dtb
+	armada-xp-theadorable.dtb		\
+	armada-38x-controlcenterdc.dtb
 
 dtb-$(CONFIG_ARCH_UNIPHIER_LD11) += \
 	uniphier-ld11-ref.dtb
@@ -316,9 +320,15 @@ dtb-$(CONFIG_MX6) += imx6ull-14x14-evk.dtb \
 	imx6q-icore.dtb \
 	imx6q-icore-rqs.dtb \
 	imx6sx-sabreauto.dtb \
-	imx6ul-geam-kit.dtb
+	imx6ul-geam-kit.dtb \
+	imx6ul-isiot-emmc.dtb \
+	imx6ul-isiot-mmc.dtb \
+	imx6ul-isiot-nand.dtb \
+	imx6ul-opos6uldev.dtb
 
 dtb-$(CONFIG_MX7) += imx7-colibri.dtb
+
+dtb-$(CONFIG_ARCH_MX7ULP) += imx7ulp-evk.dtb
 
 dtb-$(CONFIG_SOC_KEYSTONE) += keystone-k2hk-evm.dtb \
 	keystone-k2l-evm.dtb \
@@ -338,6 +348,8 @@ dtb-$(CONFIG_ARCH_BCM283X) += \
 	bcm2837-rpi-3-b.dtb
 
 dtb-$(CONFIG_ARCH_ASPEED) += ast2500-evb.dtb
+
+dtb-$(CONFIG_ARCH_STI) += stih410-b2260.dtb
 
 targets += $(dtb-y)
 

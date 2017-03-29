@@ -12,11 +12,6 @@
 #define CONFIG_FSL_SEC_MON
 #define CONFIG_SHA_HW_ACCEL
 #define CONFIG_SHA_PROG_HW_ACCEL
-#define CONFIG_RSA_FREESCALE_EXP
-
-#ifndef CONFIG_FSL_CAAM
-#define CONFIG_FSL_CAAM
-#endif
 
 #define CONFIG_SPL_BOARD_INIT
 #ifdef CONFIG_SPL_BUILD
@@ -91,8 +86,8 @@
 /* For SD boot address and size are assigned in terms of sector
  * offset and no. of sectors respectively.
  */
-#define CONFIG_BS_HDR_ADDR_DEVICE	0x00000800
-#define CONFIG_BS_ADDR_DEVICE		0x00000840
+#define CONFIG_BS_HDR_ADDR_DEVICE	0x00000900
+#define CONFIG_BS_ADDR_DEVICE		0x00000940
 #define CONFIG_BS_HDR_SIZE		0x00000010
 #define CONFIG_BS_SIZE			0x00000008
 #else

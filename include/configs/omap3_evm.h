@@ -85,10 +85,6 @@
  */
 #define CONFIG_OMAP			/* This is TI OMAP core */
 #define CONFIG_OMAP_GPIO
-/* Common ARM Erratas */
-#define CONFIG_ARM_ERRATA_454179
-#define CONFIG_ARM_ERRATA_430973
-#define CONFIG_ARM_ERRATA_621766
 
 #define CONFIG_SDRC			/* The chip has SDRC controller */
 
@@ -152,7 +148,6 @@
 #define CONFIG_CONS_INDEX		1
 #define CONFIG_SERIAL1			1	/* UART1 on OMAP3 EVM */
 #define CONFIG_SYS_NS16550_COM1		OMAP34XX_UART1
-#define CONFIG_BAUDRATE			115200
 #define CONFIG_SYS_BAUDRATE_TABLE	{4800, 9600, 19200, 38400, 57600,\
 					115200}
 

@@ -19,10 +19,6 @@
 #define CONFIG_OMAP			/* in a TI OMAP core */
 
 #define CONFIG_OMAP_GPIO
-/* Common ARM Erratas */
-#define CONFIG_ARM_ERRATA_454179
-#define CONFIG_ARM_ERRATA_430973
-#define CONFIG_ARM_ERRATA_621766
 
 #define CONFIG_SDRC			/* Has an SDRC controller */
 
@@ -67,7 +63,6 @@
 
 /* allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
-#define CONFIG_BAUDRATE			115200
 
 /* GPIO banks */
 #define CONFIG_OMAP3_GPIO_2		/* GPIO32 ..63  is in GPIO bank 2 */

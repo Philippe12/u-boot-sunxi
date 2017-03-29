@@ -8,7 +8,6 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H
 
-#define CONFIG_SYS_THUMB_BUILD
 #define CONFIG_STM32F4DISCOVERY
 
 #define CONFIG_MISC_INIT_R
@@ -69,7 +68,6 @@
 
 #define CONFIG_STACKSIZE		(64 << 10)
 
-#define CONFIG_BAUDRATE			115200
 #define CONFIG_BOOTARGS							\
 	"console=ttyS0,115200 earlyprintk consoleblank=0 ignore_loglevel"
 #define CONFIG_BOOTCOMMAND						\
